@@ -30,6 +30,7 @@ def create_database(db_path="toefl_words.db"):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             word TEXT UNIQUE NOT NULL,
             count INTEGER DEFAULT 0,
+            learn_content TEXT DEFAULT '{}',
             created DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -89,8 +90,8 @@ def import_words_from_file(file_path, db_conn):
                 # 尝试插入单词，如果已存在则跳过
                 cursor.execute(
                     """
-                    INSERT OR IGNORE INTO words (word, count, created, updated)
-                    VALUES (?, 0, ?, ?)
+                    INSERT OR IGNORE INTO words (word, count, learn_content, created, updated)
+                    VALUES (?, 0, '{}', ?, ?)
                 """,
                     (word, current_time, current_time),
                 )
