@@ -118,6 +118,11 @@ class AnkiExporter:
                         <div class="card-front essay-translation">
                             <h3>{{Title}}</h3>
                             <div class="english-text">{{EnglishContent}}</div>
+                            {{#Words}}
+                            <div class="essay-words">
+                                <strong>相关单词:</strong> {{Words}}
+                            </div>
+                            {{/Words}}
                             <div class="hint">请翻译这段英文</div>
                         </div>
                     """,
@@ -134,6 +139,11 @@ class AnkiExporter:
                                     <p>{{ChineseContent}}</p>
                                 </div>
                             </div>
+                            {{#Words}}
+                            <div class="essay-words">
+                                <strong>相关单词:</strong> {{Words}}
+                            </div>
+                            {{/Words}}
                         </div>
                     """,
                 },
@@ -143,6 +153,11 @@ class AnkiExporter:
                         <div class="card-front essay-reverse">
                             <h3>{{Title}}</h3>
                             <div class="chinese-text">{{ChineseContent}}</div>
+                            {{#Words}}
+                            <div class="essay-words">
+                                <strong>相关单词:</strong> {{Words}}
+                            </div>
+                            {{/Words}}
                             <div class="hint">请根据中文翻译回想英文原文</div>
                         </div>
                     """,
@@ -159,6 +174,11 @@ class AnkiExporter:
                                     <p>{{EnglishContent}}</p>
                                 </div>
                             </div>
+                            {{#Words}}
+                            <div class="essay-words">
+                                <strong>相关单词:</strong> {{Words}}
+                            </div>
+                            {{/Words}}
                         </div>
                     """,
                 },
@@ -169,58 +189,61 @@ class AnkiExporter:
     def _get_card_css(self) -> str:
         """获取卡片CSS样式"""
         return """
-/* TOEFL单词学习卡片样式 */
+/* TOEFL单词学习卡片样式 - 紧凑版 */
 
 .card {
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    line-height: 1.6;
-    margin: 20px;
-    padding: 20px;
+    line-height: 1.4;
+    margin: 8px;
+    padding: 12px;
     background: #f8f9fa;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
 }
 
 /* 正面卡片样式 */
 .card-front {
     text-align: center;
-    padding: 30px 20px;
+    padding: 15px 10px;
 }
 
 .card-front h2, .card-front h3 {
     color: #2c3e50;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    font-size: 1.3em;
 }
 
 .word {
-    font-size: 2.5em;
+    font-size: 2.0em;
     font-weight: bold;
     color: #3498db;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 }
 
 .hint {
     color: #7f8c8d;
     font-style: italic;
-    margin-top: 20px;
+    margin-top: 10px;
+    font-size: 0.9em;
 }
 
 /* 背面卡片样式 */
 .card-back {
-    padding: 20px;
+    padding: 12px;
 }
 
 .word-content {
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    border-left: 4px solid #3498db;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #3498db;
 }
 
 .word-content > div {
-    margin-bottom: 15px;
-    padding: 8px 0;
+    margin-bottom: 8px;
+    padding: 4px 0;
     border-bottom: 1px solid #ecf0f1;
+    font-size: 0.9em;
 }
 
 .word-content > div:last-child {
@@ -230,24 +253,24 @@ class AnkiExporter:
 .phonetic {
     font-family: 'Lucida Sans Unicode', sans-serif;
     color: #e74c3c;
-    font-size: 1.1em;
+    font-size: 1.0em;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
 .pronunciation-buttons {
-    margin-left: 10px;
+    margin-left: 8px;
 }
 
 .pronunciation-btn {
     background: none;
     border: none;
-    font-size: 1.2em;
+    font-size: 1.0em;
     cursor: pointer;
-    margin: 0 3px;
-    padding: 5px;
-    border-radius: 3px;
+    margin: 0 2px;
+    padding: 3px;
+    border-radius: 2px;
     transition: background-color 0.2s;
 }
 
@@ -262,108 +285,112 @@ class AnkiExporter:
 .pronunciation {
     color: #9b59b6;
     font-weight: bold;
+    font-size: 0.9em;
 }
 
 .pos {
     color: #f39c12;
     font-weight: bold;
+    font-size: 0.9em;
 }
 
 .translations ul, .phrases ul, .examples ol {
-    margin: 10px 0;
-    padding-left: 20px;
+    margin: 6px 0;
+    padding-left: 16px;
 }
 
 .translations li, .phrases li, .examples li {
-    margin: 5px 0;
+    margin: 3px 0;
     color: #2c3e50;
+    font-size: 0.9em;
 }
 
 /* 拼写卡片特殊样式 */
 .spelling-hint {
     background: #fff3cd;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 15px;
+    border-radius: 6px;
     border: 2px dashed #ffc107;
 }
 
 .meaning {
-    font-size: 1.4em;
+    font-size: 1.2em;
     color: #856404;
-    margin: 15px 0;
+    margin: 10px 0;
 }
 
 .spelling-answer {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 15px;
+    border-radius: 6px;
     text-align: center;
 }
 
 /* 反向卡片样式 */
 .chinese-meaning {
-    font-size: 1.6em;
+    font-size: 1.3em;
     color: #e74c3c;
-    padding: 20px;
+    padding: 15px;
     background: #fdedec;
-    border-radius: 8px;
-    margin: 20px 0;
+    border-radius: 6px;
+    margin: 15px 0;
 }
 
 .reverse-answer {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 15px;
+    border-radius: 6px;
     text-align: center;
 }
 
-/* 短文卡片样式 */
+/* 短文卡片样式 - 紧凑版 */
 .english-text, .chinese-text {
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    border-left: 4px solid #3498db;
-    margin: 20px 0;
-    line-height: 1.8;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #3498db;
+    margin: 12px 0;
+    line-height: 1.5;
+    font-size: 0.95em;
 }
 
 .translation-pair {
-    margin-top: 20px;
+    margin-top: 12px;
 }
 
 .translation-pair > div {
-    margin-bottom: 20px;
-    padding: 15px;
-    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 10px;
+    border-radius: 6px;
 }
 
 .english {
     background: #e8f4fd;
-    border-left: 4px solid #3498db;
+    border-left: 3px solid #3498db;
 }
 
 .chinese {
     background: #fef9e7;
-    border-left: 4px solid #f1c40f;
+    border-left: 3px solid #f1c40f;
 }
 
 /* 填空卡片样式 */
 .cloze-text {
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    border-left: 4px solid #e74c3c;
-    margin: 20px 0;
-    line-height: 1.8;
-    font-size: 1.1em;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #e74c3c;
+    margin: 12px 0;
+    line-height: 1.5;
+    font-size: 0.95em;
 }
 
 .blank {
     background: #f8d7da;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
     border: 2px dashed #dc3545;
     font-weight: bold;
     color: #721c24;
@@ -371,43 +398,61 @@ class AnkiExporter:
 
 .word-bank {
     background: #d1ecf1;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #17a2b8;
-    margin-top: 20px;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid #17a2b8;
+    margin-top: 12px;
+    font-size: 0.9em;
 }
 
 .complete-text {
     background: #d4edda;
-    padding: 20px;
-    border-radius: 8px;
-    border-left: 4px solid #28a745;
-    margin: 20px 0;
-    line-height: 1.8;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 3px solid #28a745;
+    margin: 12px 0;
+    line-height: 1.5;
+    font-size: 0.95em;
 }
 
 .blanked-words {
     background: #fff3cd;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #ffc107;
-    margin-top: 20px;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid #ffc107;
+    margin-top: 12px;
     font-weight: bold;
+    font-size: 0.9em;
+}
+
+/* 文章相关单词显示 */
+.essay-words {
+    background: #e7f3ff;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid #007bff;
+    margin: 12px 0;
+    font-size: 0.9em;
+    color: #0056b3;
+}
+
+.essay-words strong {
+    color: #004085;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
     .card {
-        margin: 10px;
-        padding: 15px;
+        margin: 5px;
+        padding: 10px;
     }
     
     .word {
-        font-size: 2em;
+        font-size: 1.8em;
     }
     
     .card-front {
-        padding: 20px 15px;
+        padding: 15px 10px;
     }
 }
 
@@ -658,7 +703,7 @@ function playPronunciation(word, type) {
         }
 
     def _create_essay_translation_card(
-        self, essay_data: Dict[str, Any], essay_id: int
+        self, essay_data: Dict[str, Any], essay_id: int, words: List[str] = None
     ) -> Dict[str, str]:
         """
         创建短文翻译卡片（看短文想翻译）
@@ -666,6 +711,7 @@ function playPronunciation(word, type) {
         Args:
             essay_data: 短文数据
             essay_id: 短文ID
+            words: 相关单词列表
 
         Returns:
             Dict: 卡片数据
@@ -674,10 +720,20 @@ function playPronunciation(word, type) {
         chinese_translation = essay_data.get("chinese_translation", "")
         title = essay_data.get("title", f"Essay {essay_id}")
 
+        # 添加单词信息
+        words_info = ""
+        if words:
+            words_info = f"""
+            <div class="essay-words">
+                <strong>相关单词:</strong> {', '.join([escape(w) for w in words])}
+            </div>
+            """
+
         front = f"""
         <div class="card-front essay-translation">
             <h3>{escape(title)}</h3>
             <div class="english-text">{escape(english_content)}</div>
+            {words_info}
             <div class="hint">请翻译这篇短文</div>
         </div>
         """
@@ -695,6 +751,7 @@ function playPronunciation(word, type) {
                     <p>{escape(chinese_translation)}</p>
                 </div>
             </div>
+            {words_info}
         </div>
         """
 
@@ -706,7 +763,7 @@ function playPronunciation(word, type) {
         }
 
     def _create_essay_reverse_card(
-        self, essay_data: Dict[str, Any], essay_id: int
+        self, essay_data: Dict[str, Any], essay_id: int, words: List[str] = None
     ) -> Dict[str, str]:
         """
         创建短文反向卡片（看翻译想短文）
@@ -714,6 +771,7 @@ function playPronunciation(word, type) {
         Args:
             essay_data: 短文数据
             essay_id: 短文ID
+            words: 相关单词列表
 
         Returns:
             Dict: 卡片数据
@@ -722,10 +780,20 @@ function playPronunciation(word, type) {
         chinese_translation = essay_data.get("chinese_translation", "")
         title = essay_data.get("title", f"Essay {essay_id}")
 
+        # 添加单词信息
+        words_info = ""
+        if words:
+            words_info = f"""
+            <div class="essay-words">
+                <strong>相关单词:</strong> {', '.join([escape(w) for w in words])}
+            </div>
+            """
+
         front = f"""
         <div class="card-front essay-reverse">
             <h3>{escape(title)}</h3>
             <div class="chinese-text">{escape(chinese_translation)}</div>
+            {words_info}
             <div class="hint">请根据中文翻译回想英文原文</div>
         </div>
         """
@@ -743,6 +811,7 @@ function playPronunciation(word, type) {
                     <p>{escape(english_content)}</p>
                 </div>
             </div>
+            {words_info}
         </div>
         """
 
@@ -932,8 +1001,10 @@ function playPronunciation(word, type) {
                     continue
 
                 # 为每篇短文创建三种卡片
-                cards.append(self._create_essay_translation_card(content, essay_id))
-                cards.append(self._create_essay_reverse_card(content, essay_id))
+                cards.append(
+                    self._create_essay_translation_card(content, essay_id, words)
+                )
+                cards.append(self._create_essay_reverse_card(content, essay_id, words))
                 cards.append(self._create_essay_cloze_card(content, words, essay_id))
 
             # 写入CSV文件
