@@ -12,7 +12,7 @@ from datetime import datetime
 
 def create_database(db_path="toefl_words.db"):
     """
-    创建SQLite数据库和words表
+    创建SQLite数据库和words表、essay表
 
     Args:
         db_path (str): 数据库文件路径
@@ -37,8 +37,22 @@ def create_database(db_path="toefl_words.db"):
     """
     )
 
+    # 创建essay表
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS essay (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            words TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """
+    )
+
     # 创建索引以提高查询性能
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_word ON words(word)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_essay_created ON essay(created)")
 
     conn.commit()
     return conn
@@ -132,9 +146,13 @@ def get_database_stats(db_conn):
     cursor.execute("SELECT MIN(created), MAX(created) FROM words")
     date_range = cursor.fetchone()
 
+    cursor.execute("SELECT COUNT(*) FROM essay")
+    total_essays = cursor.fetchone()[0]
+
     return {
         "total_words": total_words,
         "words_with_count": words_with_count,
+        "total_essays": total_essays,
         "earliest_created": date_range[0],
         "latest_created": date_range[1],
     }
@@ -155,6 +173,7 @@ def main():
         stats_before = get_database_stats(conn)
         print(f"\n导入前数据库统计:")
         print(f"  总单词数: {stats_before['total_words']}")
+        print(f"  总短文数: {stats_before['total_essays']}")
 
         # 导入单词
         success, skipped, total = import_words_from_file(words_file, conn)
@@ -169,6 +188,7 @@ def main():
         stats_after = get_database_stats(conn)
         print(f"\n导入后数据库统计:")
         print(f"  总单词数: {stats_after['total_words']}")
+        print(f"  总短文数: {stats_after['total_essays']}")
         print(
             f"  新增单词数: {stats_after['total_words'] - stats_before['total_words']}"
         )
@@ -186,12 +206,6 @@ def main():
     except Exception as e:
         print(f"错误: {e}")
         return 1
-
-    finally:
-        if "conn" in locals():
-            conn.close()
-
-    return 0
 
 
 if __name__ == "__main__":
