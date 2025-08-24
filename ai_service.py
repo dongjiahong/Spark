@@ -28,7 +28,7 @@ class AIService:
             raise ValueError("请在.env文件中配置OPENAI_URL、OPENAI_KEY和MODEL")
 
     def _make_request(
-        self, messages: List[Dict[str, str]], max_tokens: int = 2000
+        self, messages: List[Dict[str, str]], max_tokens: int = 4000
     ) -> str:
         """
         向AI服务发送请求
@@ -85,7 +85,7 @@ class AIService:
 2. pronunciation: 发音分割（用小圆点分隔，如con·tem·po·rary）
 3. part_of_speech: 词性（可能有多个）
 4. translations: 常用翻译（2-3个最常用的中文释义）
-5. common_phrases: 常用短语（1-3个带中文翻译）
+5. common_phrases: 常用短语（1-2个带中文翻译）
 6. etymology: 词根词缀分析
 7. examples: 例句（2个句子，每个都要有中文翻译）
 
@@ -134,7 +134,7 @@ class AIService:
         prompt = f"""请创作一篇{chinese_type}，要求：
 
 1. 必须包含以下单词：{words_str}
-2. 文章要简短易记（30-150词），适合背诵，文章尽可能简短
+2. 文章要简短易记（20-150词），适合背诵，文章尽可能简短
 3. 每个单词都要有记忆点，在文中的使用要生动有趣
 4. 情节要有趣且容易记忆
 5. 语言要地道自然

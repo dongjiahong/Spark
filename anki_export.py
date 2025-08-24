@@ -59,42 +59,6 @@ class AnkiExporter:
                         </div>
                     """,
                 },
-                {
-                    "name": "Word Spelling",
-                    "qfmt": """
-                        <div class="card-front word-spelling">
-                            <div class="spelling-hint">
-                                <div class="meaning">{{Content}}</div>
-                                <div class="hint">请拼写出这个单词</div>
-                            </div>
-                        </div>
-                    """,
-                    "afmt": """
-                        <div class="card-back">
-                            <div class="spelling-answer">
-                                <h2 class="word">{{Word}}</h2>
-                            </div>
-                            {{Content}}
-                        </div>
-                    """,
-                },
-                {
-                    "name": "Word Reverse",
-                    "qfmt": """
-                        <div class="card-front word-reverse">
-                            <div class="chinese-meaning">{{Content}}</div>
-                            <div class="hint">请说出对应的英文单词</div>
-                        </div>
-                    """,
-                    "afmt": """
-                        <div class="card-back">
-                            <div class="reverse-answer">
-                                <h2 class="word">{{Word}}</h2>
-                            </div>
-                            {{Content}}
-                        </div>
-                    """,
-                },
             ],
             css=self._get_card_css(),
         )
@@ -189,276 +153,298 @@ class AnkiExporter:
     def _get_card_css(self) -> str:
         """获取卡片CSS样式"""
         return """
-/* TOEFL单词学习卡片样式 - 紧凑版 */
+/* TOEFL单词卡片 - 极简设计 */
 
 .card {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    line-height: 1.4;
-    margin: 8px;
-    padding: 12px;
-    background: #f8f9fa;
-    border-radius: 6px;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.5;
+    color: #333;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
-/* 正面卡片样式 */
+/* 正面卡片 */
 .card-front {
     text-align: center;
-    padding: 15px 10px;
-}
-
-.card-front h2, .card-front h3 {
-    color: #2c3e50;
-    margin-bottom: 10px;
-    font-size: 1.3em;
+    padding: 40px 20px;
 }
 
 .word {
-    font-size: 2.0em;
-    font-weight: bold;
-    color: #3498db;
-    margin-bottom: 8px;
+    font-size: 2.5em;
+    font-weight: 300;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
 }
 
 .hint {
-    color: #7f8c8d;
-    font-style: italic;
-    margin-top: 10px;
-    font-size: 0.9em;
+    color: #666;
+    font-size: 16px;
+    margin-top: 30px;
 }
 
-/* 背面卡片样式 */
+/* 背面卡片内容 */
 .card-back {
-    padding: 12px;
+    padding: 20px;
 }
 
 .word-content {
-    background: white;
-    padding: 12px;
-    border-radius: 6px;
-    border-left: 3px solid #3498db;
+    line-height: 1.6;
 }
 
 .word-content > div {
-    margin-bottom: 8px;
-    padding: 4px 0;
-    border-bottom: 1px solid #ecf0f1;
-    font-size: 0.9em;
+    margin-bottom: 15px;
 }
 
 .word-content > div:last-child {
-    border-bottom: none;
+    margin-bottom: 0;
+}
+
+/* 音标和词性行 */
+.phonetic-line {
+    font-size: 18px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
 }
 
 .phonetic {
-    font-family: 'Lucida Sans Unicode', sans-serif;
     color: #e74c3c;
-    font-size: 1.0em;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    font-family: 'Times New Roman', serif;
+    font-size: 18px;
+    margin-right: 15px;
 }
 
-.pronunciation-buttons {
-    margin-left: 8px;
-}
-
-.pronunciation-btn {
-    background: none;
-    border: none;
-    font-size: 1.0em;
-    cursor: pointer;
-    margin: 0 2px;
-    padding: 3px;
-    border-radius: 2px;
-    transition: background-color 0.2s;
-}
-
-.pronunciation-btn:hover {
-    background-color: #f0f0f0;
-}
-
-.pronunciation-btn:active {
-    background-color: #ddd;
+.pos {
+    color: #7f8c8d;
+    font-style: italic;
+    font-size: 16px;
 }
 
 .pronunciation {
     color: #9b59b6;
-    font-weight: bold;
-    font-size: 0.9em;
+    font-size: 16px;
+    margin-left: 10px;
 }
 
-.pos {
-    color: #f39c12;
-    font-weight: bold;
-    font-size: 0.9em;
+.play-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 5px;
+    margin-left: 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
 }
 
-.translations ul, .phrases ul, .examples ol {
-    margin: 6px 0;
-    padding-left: 16px;
+.play-btn:hover {
+    background-color: #f5f5f5;
 }
 
-.translations li, .phrases li, .examples li {
-    margin: 3px 0;
+/* 翻译 */
+.meanings {
+    font-size: 20px;
+    font-weight: 500;
     color: #2c3e50;
-    font-size: 0.9em;
+    margin-bottom: 20px;
+    line-height: 1.4;
 }
 
-/* 拼写卡片特殊样式 */
+/* 词根 */
+.etymology {
+    color: #666;
+    font-size: 14px;
+    font-style: italic;
+    margin-bottom: 15px;
+    padding-left: 10px;
+    border-left: 2px solid #ddd;
+}
+
+.etymology::before {
+    content: "词根: ";
+    color: #7f8c8d;
+    font-weight: 500;
+    font-style: normal;
+}
+
+/* 短语 */
+.phrases {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.phrases::before {
+    content: "短语: ";
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+/* 例句 */
+.examples {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.examples::before {
+    content: "例句:";
+    color: #7f8c8d;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.examples small {
+    color: #888;
+    font-size: 13px;
+    display: block;
+    margin-top: 3px;
+    margin-bottom: 10px;
+}
+
+/* 错误信息 */
+.error {
+    color: #e74c3c;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* 拼写卡片 */
 .spelling-hint {
-    background: #fff3cd;
-    padding: 15px;
-    border-radius: 6px;
-    border: 2px dashed #ffc107;
+    padding: 30px;
+    text-align: center;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
 }
 
 .meaning {
-    font-size: 1.2em;
-    color: #856404;
-    margin: 10px 0;
+    font-size: 24px;
+    color: #2c3e50;
+    margin: 20px 0;
+    font-weight: 500;
 }
 
 .spelling-answer {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
-    padding: 15px;
-    border-radius: 6px;
+    padding: 20px;
+    border-radius: 8px;
     text-align: center;
+    font-size: 2.2em;
+    font-weight: 300;
+    letter-spacing: 2px;
 }
 
-/* 反向卡片样式 */
+/* 反向卡片 */
 .chinese-meaning {
-    font-size: 1.3em;
-    color: #e74c3c;
-    padding: 15px;
-    background: #fdedec;
-    border-radius: 6px;
-    margin: 15px 0;
+    font-size: 28px;
+    color: #2c3e50;
+    text-align: center;
+    padding: 30px;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    margin: 20px 0;
 }
 
 .reverse-answer {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
-    padding: 15px;
-    border-radius: 6px;
+    padding: 20px;
+    border-radius: 8px;
     text-align: center;
+    font-size: 2.2em;
+    font-weight: 300;
+    letter-spacing: 2px;
 }
 
-/* 短文卡片样式 - 紧凑版 */
+/* 短文卡片 */
 .english-text, .chinese-text {
-    background: white;
-    padding: 12px;
-    border-radius: 6px;
+    padding: 20px;
+    line-height: 1.8;
+    font-size: 16px;
     border-left: 3px solid #3498db;
-    margin: 12px 0;
-    line-height: 1.5;
-    font-size: 0.95em;
-}
-
-.translation-pair {
-    margin-top: 12px;
+    margin: 20px 0;
 }
 
 .translation-pair > div {
-    margin-bottom: 12px;
-    padding: 10px;
-    border-radius: 6px;
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 5px;
 }
 
 .english {
-    background: #e8f4fd;
     border-left: 3px solid #3498db;
 }
 
 .chinese {
-    background: #fef9e7;
-    border-left: 3px solid #f1c40f;
+    border-left: 3px solid #f39c12;
 }
 
-/* 填空卡片样式 */
+/* 填空卡片 */
 .cloze-text {
-    background: white;
-    padding: 12px;
-    border-radius: 6px;
+    padding: 20px;
+    line-height: 1.8;
+    font-size: 16px;
     border-left: 3px solid #e74c3c;
-    margin: 12px 0;
-    line-height: 1.5;
-    font-size: 0.95em;
+    margin: 20px 0;
 }
 
 .blank {
-    background: #f8d7da;
-    padding: 2px 6px;
-    border-radius: 3px;
-    border: 2px dashed #dc3545;
-    font-weight: bold;
-    color: #721c24;
+    display: inline-block;
+    min-width: 80px;
+    height: 20px;
+    border-bottom: 2px solid #e74c3c;
+    margin: 0 3px;
 }
 
 .word-bank {
-    background: #d1ecf1;
-    padding: 10px;
-    border-radius: 6px;
+    padding: 15px;
     border-left: 3px solid #17a2b8;
-    margin-top: 12px;
-    font-size: 0.9em;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
 }
 
 .complete-text {
-    background: #d4edda;
-    padding: 12px;
-    border-radius: 6px;
+    padding: 20px;
+    line-height: 1.8;
     border-left: 3px solid #28a745;
-    margin: 12px 0;
-    line-height: 1.5;
-    font-size: 0.95em;
+    margin: 20px 0;
 }
 
 .blanked-words {
-    background: #fff3cd;
-    padding: 10px;
-    border-radius: 6px;
+    padding: 15px;
     border-left: 3px solid #ffc107;
-    margin-top: 12px;
-    font-weight: bold;
-    font-size: 0.9em;
+    margin-top: 20px;
+    font-weight: 500;
+    color: #856404;
 }
 
-/* 文章相关单词显示 */
-.essay-words {
-    background: #e7f3ff;
-    padding: 10px;
-    border-radius: 6px;
-    border-left: 3px solid #007bff;
-    margin: 12px 0;
-    font-size: 0.9em;
-    color: #0056b3;
-}
-
-.essay-words strong {
-    color: #004085;
-}
-
-/* 响应式设计 */
+/* 响应式 */
 @media (max-width: 768px) {
     .card {
-        margin: 5px;
-        padding: 10px;
+        padding: 15px;
     }
     
     .word {
-        font-size: 1.8em;
+        font-size: 2em;
+    }
+    
+    .meanings {
+        font-size: 18px;
     }
     
     .card-front {
-        padding: 15px 10px;
+        padding: 30px 15px;
     }
 }
 
 <script>
 function playPronunciation(word, type) {
-    // type: 0=美式发音, 1=英式发音
     const url = 'http://dict.youdao.com/dictvoice?type=' + type + '&audio=' + encodeURIComponent(word);
     const audio = new Audio(url);
     audio.play().catch(function(error) {
@@ -476,7 +462,7 @@ function playPronunciation(word, type) {
 
     def _format_learning_content(self, content: Dict[str, Any], word: str = "") -> str:
         """
-        格式化学习内容为HTML
+        格式化学习内容为HTML - 极简干净设计
 
         Args:
             content: 学习内容字典
@@ -486,97 +472,159 @@ function playPronunciation(word, type) {
             str: 格式化的HTML内容
         """
         if not content or "error" in content:
-            return "<div>学习内容生成失败</div>"
+            return "<div class='error'>学习内容生成失败</div>"
 
-        html_parts = []
+        sections = []
 
-        # 音标（带发音功能）
+        # 1. 音标和发音行
+        phonetic_line = []
+
+        # 处理音标
         if "phonetic" in content:
-            phonetic_text = escape(str(content["phonetic"]))
-            if word:
-                # 添加美式和英式发音图标
-                pronunciation_html = f"""
-                <div class='phonetic'>
-                    <strong>音标:</strong> {phonetic_text}
-                    <span class="pronunciation-buttons">
-                        <button class="pronunciation-btn" onclick="playPronunciation('{word}', 0)" title="美式发音">🇺🇸</button>
-                        <button class="pronunciation-btn" onclick="playPronunciation('{word}', 1)" title="英式发音">🇬🇧</button>
-                    </span>
-                </div>
-                """
-            else:
-                pronunciation_html = f"<div class='phonetic'><strong>音标:</strong> {phonetic_text}</div>"
-            html_parts.append(pronunciation_html)
+            phonetic = content["phonetic"]
+            if isinstance(phonetic, dict):
+                # 从字典中提取音标
+                phonetic_parts = []
+                if "UK" in phonetic and phonetic["UK"]:
+                    phonetic_parts.append(f"英 {phonetic['UK']}")
+                if "US" in phonetic and phonetic["US"]:
+                    phonetic_parts.append(f"美 {phonetic['US']}")
+                if phonetic_parts:
+                    phonetic_text = " ".join(phonetic_parts)
+                    if word:
+                        phonetic_line.append(
+                            f'<span class="phonetic">{escape(phonetic_text)} <button class="play-btn" onclick="playPronunciation(\'{word}\', 0)">🔊</button></span>'
+                        )
+                    else:
+                        phonetic_line.append(
+                            f'<span class="phonetic">{escape(phonetic_text)}</span>'
+                        )
+            elif isinstance(phonetic, str) and phonetic.strip():
+                clean_phonetic = phonetic.strip("{}").strip()
+                if clean_phonetic:
+                    if word:
+                        phonetic_line.append(
+                            f'<span class="phonetic">{escape(clean_phonetic)} <button class="play-btn" onclick="playPronunciation(\'{word}\', 0)">🔊</button></span>'
+                        )
+                    else:
+                        phonetic_line.append(
+                            f'<span class="phonetic">{escape(clean_phonetic)}</span>'
+                        )
 
-        # 发音分割
-        if "pronunciation" in content:
-            html_parts.append(
-                f"<div class='pronunciation'><strong>发音:</strong> {escape(str(content['pronunciation']))}</div>"
-            )
-
-        # 词性
+        # 处理词性
         if "part_of_speech" in content:
             pos = content["part_of_speech"]
             if isinstance(pos, list):
-                pos_str = ", ".join(pos)
-            else:
-                pos_str = str(pos)
-            html_parts.append(
-                f"<div class='pos'><strong>词性:</strong> {escape(pos_str)}</div>"
+                pos_clean = [
+                    p.strip("{}").strip() for p in pos if p.strip("{}").strip()
+                ]
+                if pos_clean:
+                    phonetic_line.append(
+                        f'<span class="pos">{escape(" ".join(pos_clean))}</span>'
+                    )
+            elif isinstance(pos, str) and pos.strip():
+                pos_clean = pos.strip("{}").strip()
+                if pos_clean:
+                    phonetic_line.append(
+                        f'<span class="pos">{escape(pos_clean)}</span>'
+                    )
+
+        # 处理发音分割
+        if "pronunciation" in content:
+            pronunciation_text = (
+                content["pronunciation"].strip("{}").strip()
+                if isinstance(content["pronunciation"], str)
+                else str(content["pronunciation"])
+            )
+            if pronunciation_text:
+                phonetic_line.append(
+                    f'<span class="pronunciation">{escape(pronunciation_text)}</span>'
+                )
+
+        if phonetic_line:
+            sections.append(
+                f'<div class="phonetic-line">{" ".join(phonetic_line)}</div>'
             )
 
-        # 翻译
+        # 2. 翻译
         if "translations" in content:
             translations = content["translations"]
             if isinstance(translations, list):
-                trans_html = (
-                    "<ul>"
-                    + "".join([f"<li>{escape(str(t))}</li>" for t in translations])
-                    + "</ul>"
-                )
-            else:
-                trans_html = escape(str(translations))
-            html_parts.append(
-                f"<div class='translations'><strong>常用翻译:</strong><br>{trans_html}</div>"
-            )
+                clean_translations = [
+                    str(t).strip("{}").strip()
+                    for t in translations
+                    if str(t).strip("{}").strip()
+                ]
+                if clean_translations:
+                    sections.append(
+                        f'<div class="meanings">{escape(" / ".join(clean_translations))}</div>'
+                    )
+            elif isinstance(translations, str) and translations.strip():
+                clean_trans = translations.strip("{}").strip()
+                if clean_trans:
+                    sections.append(
+                        f'<div class="meanings">{escape(clean_trans)}</div>'
+                    )
 
-        # 常用短语
+        # 3. 词根词缀（如果有）
+        if "etymology" in content and content["etymology"]:
+            etymology = str(content["etymology"]).strip("{}").strip()
+            if etymology:
+                sections.append(f'<div class="etymology">{escape(etymology)}</div>')
+
+        # 4. 短语
         if "common_phrases" in content:
             phrases = content["common_phrases"]
             if isinstance(phrases, list):
-                phrases_html = (
-                    "<ul>"
-                    + "".join([f"<li>{escape(str(p))}</li>" for p in phrases])
-                    + "</ul>"
-                )
-            else:
-                phrases_html = escape(str(phrases))
-            html_parts.append(
-                f"<div class='phrases'><strong>常用短语:</strong><br>{phrases_html}</div>"
-            )
+                phrase_items = []
+                for phrase_item in phrases:
+                    if isinstance(phrase_item, dict):
+                        # 从字典中提取短语和翻译
+                        phrase_text = phrase_item.get("phrase", "").strip()
+                        translation = phrase_item.get("translation", "").strip()
+                        if phrase_text:
+                            if translation:
+                                phrase_items.append(f"{phrase_text} {translation}")
+                            else:
+                                phrase_items.append(phrase_text)
+                    elif isinstance(phrase_item, str):
+                        clean_phrase = phrase_item.strip("{}").strip()
+                        if clean_phrase:
+                            phrase_items.append(clean_phrase)
 
-        # 词根词缀
-        if "etymology" in content:
-            html_parts.append(
-                f"<div class='etymology'><strong>词根词缀:</strong> {escape(str(content['etymology']))}</div>"
-            )
+                if phrase_items:
+                    phrases_text = " / ".join(phrase_items)
+                    sections.append(
+                        f'<div class="phrases">{escape(phrases_text)}</div>'
+                    )
 
-        # 例句
+        # 5. 例句
         if "examples" in content:
             examples = content["examples"]
             if isinstance(examples, list):
-                examples_html = (
-                    "<ol>"
-                    + "".join([f"<li>{escape(str(ex))}</li>" for ex in examples])
-                    + "</ol>"
-                )
-            else:
-                examples_html = escape(str(examples))
-            html_parts.append(
-                f"<div class='examples'><strong>例句:</strong><br>{examples_html}</div>"
-            )
+                example_items = []
+                for example_item in examples[:2]:  # 只显示前2个例句
+                    if isinstance(example_item, dict):
+                        # 从字典中提取例句和翻译
+                        sentence = example_item.get("sentence", "").strip()
+                        translation = example_item.get("translation", "").strip()
+                        if sentence:
+                            if translation:
+                                example_items.append(
+                                    f"{sentence}<br><small>{translation}</small>"
+                                )
+                            else:
+                                example_items.append(sentence)
+                    elif isinstance(example_item, str):
+                        clean_example = example_item.strip("{}").strip()
+                        if clean_example:
+                            example_items.append(clean_example)
 
-        return '<div class="word-content">' + "<br>".join(html_parts) + "</div>"
+                if example_items:
+                    examples_html = "<br>".join(example_items)
+                    sections.append(f'<div class="examples">{examples_html}</div>')
+
+        return f'<div class="word-content">{"".join(sections)}</div>'
 
     def _create_word_recognition_card(
         self, word: str, content: Dict[str, Any]
@@ -610,96 +658,6 @@ function playPronunciation(word, type) {
             "back": back.strip(),
             "tags": "word-recognition toefl",
             "type": "word_recognition",
-        }
-
-    def _create_word_spelling_card(
-        self, word: str, content: Dict[str, Any]
-    ) -> Dict[str, str]:
-        """
-        创建单词拼写卡片
-
-        Args:
-            word: 单词
-            content: 学习内容
-
-        Returns:
-            Dict: 卡片数据
-        """
-        # 获取主要翻译作为提示
-        hint = "英语单词"
-        if "translations" in content:
-            translations = content["translations"]
-            if isinstance(translations, list) and translations:
-                hint = str(translations[0])
-            elif isinstance(translations, str):
-                hint = translations
-
-        front = f"""
-        <div class="card-front word-spelling">
-            <div class="spelling-hint">
-                <h3>请拼写这个单词:</h3>
-                <div class="meaning">{escape(hint)}</div>
-                <div class="phonetic">{escape(str(content.get('phonetic', '')))}</div>
-            </div>
-        </div>
-        """
-
-        back = f"""
-        <div class="card-back">
-            <h2 class="word spelling-answer">{escape(word)}</h2>
-            {self._format_learning_content(content)}
-        </div>
-        """
-
-        return {
-            "front": front.strip(),
-            "back": back.strip(),
-            "tags": "word-spelling toefl",
-            "type": "word_spelling",
-        }
-
-    def _create_word_reverse_card(
-        self, word: str, content: Dict[str, Any]
-    ) -> Dict[str, str]:
-        """
-        创建反向单词卡片（看翻译想单词）
-
-        Args:
-            word: 单词
-            content: 学习内容
-
-        Returns:
-            Dict: 卡片数据
-        """
-        # 获取翻译作为正面
-        translations_text = "英语单词"
-        if "translations" in content:
-            translations = content["translations"]
-            if isinstance(translations, list):
-                translations_text = " / ".join([str(t) for t in translations])
-            else:
-                translations_text = str(translations)
-
-        front = f"""
-        <div class="card-front word-reverse">
-            <h3>这个中文意思对应的英语单词是:</h3>
-            <div class="chinese-meaning">{escape(translations_text)}</div>
-            <div class="hint">请回想对应的英语单词</div>
-        </div>
-        """
-
-        back = f"""
-        <div class="card-back">
-            <h2 class="word reverse-answer">{escape(word)}</h2>
-            {self._format_learning_content(content)}
-        </div>
-        """
-
-        return {
-            "front": front.strip(),
-            "back": back.strip(),
-            "tags": "word-reverse toefl",
-            "type": "word_reverse",
         }
 
     def _create_essay_translation_card(
@@ -933,10 +891,8 @@ function playPronunciation(word, type) {
                     print(f"跳过单词 {word}，学习内容JSON格式错误")
                     continue
 
-                # 为每个单词创建三种卡片
+                # 只创建单词识别卡片
                 cards.append(self._create_word_recognition_card(word, content))
-                cards.append(self._create_word_spelling_card(word, content))
-                cards.append(self._create_word_reverse_card(word, content))
 
             # 写入CSV文件
             with open(output_file, "w", newline="", encoding="utf-8") as csvfile:
@@ -1104,30 +1060,13 @@ function playPronunciation(word, type) {
                 # 格式化学习内容
                 formatted_content = self._format_learning_content(content, word)
 
-                # 单词识别卡片
+                # 只创建单词识别卡片
                 note1 = genanki.Note(
                     model=self.word_model,
                     fields=[word, formatted_content, "recognition"],
                     tags=["word-recognition", "toefl"],
                 )
                 deck.add_note(note1)
-
-                # 拼写卡片 - 只显示主要翻译
-                main_translation = self._get_main_translation(content)
-                note2 = genanki.Note(
-                    model=self.word_model,
-                    fields=[word, main_translation, "spelling"],
-                    tags=["word-spelling", "toefl"],
-                )
-                deck.add_note(note2)
-
-                # 反向卡片 - 只显示主要翻译
-                note3 = genanki.Note(
-                    model=self.word_model,
-                    fields=[word, main_translation, "reverse"],
-                    tags=["word-reverse", "toefl"],
-                )
-                deck.add_note(note3)
 
             # 生成APKG文件
             package = genanki.Package(deck)
@@ -1256,49 +1195,30 @@ function playPronunciation(word, type) {
 
         return {"words": words_exported, "essays": essays_exported}
 
-    def _get_main_translation(self, content: Dict[str, Any]) -> str:
-        """
-        获取主要翻译内容
-
-        Args:
-            content: 学习内容字典
-
-        Returns:
-            str: 主要翻译
-        """
-        if "translations" in content:
-            translations = content["translations"]
-            if isinstance(translations, list) and translations:
-                return escape(str(translations[0]))
-            elif isinstance(translations, str):
-                return escape(translations)
-
-        return "无翻译信息"
-
     def _create_css_file(self, css_file: str) -> None:
         """创建Anki卡片的CSS样式文件"""
         css_content = """
-/* TOEFL单词学习卡片样式 */
+/* TOEFL单词学习卡片样式 - 融合布局版 */
 
 .card {
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    line-height: 1.6;
-    margin: 20px;
+    line-height: 1.5;
+    margin: 15px;
     padding: 20px;
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 /* 正面卡片样式 */
 .card-front {
     text-align: center;
-    padding: 30px 20px;
+    padding: 25px 20px;
 }
 
 .card-front h2, .card-front h3 {
     color: #2c3e50;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .word {
@@ -1311,7 +1231,8 @@ function playPronunciation(word, type) {
 .hint {
     color: #7f8c8d;
     font-style: italic;
-    margin-top: 20px;
+    margin-top: 15px;
+    font-size: 1.0em;
 }
 
 /* 背面卡片样式 */
@@ -1326,40 +1247,121 @@ function playPronunciation(word, type) {
     border-left: 4px solid #3498db;
 }
 
-.word-content > div {
+/* 单词信息头部 - 音标、发音、词性一行显示 */
+.word-header {
+    background: #f0f8ff;
+    padding: 12px 18px;
+    border-radius: 6px;
     margin-bottom: 15px;
-    padding: 8px 0;
-    border-bottom: 1px solid #ecf0f1;
+    font-size: 1.0em;
+    border-left: 4px solid #3498db;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.phonetic-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.phonetic-text {
+    font-family: 'Lucida Sans Unicode', sans-serif;
+    color: #e74c3c;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.pronunciation-btn {
+    background: none;
+    border: none;
+    font-size: 1.0em;
+    cursor: pointer;
+    padding: 3px 5px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.pronunciation-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.pronunciation-btn:active {
+    background-color: #d0d0d0;
+}
+
+.pronunciation-info {
+    color: #9b59b6;
+    font-weight: 600;
+}
+
+.pos-info {
+    color: #f39c12;
+    font-weight: 700;
+    background: #fff3cd;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* 内容区域样式 */
+.word-content > div {
+    margin-bottom: 12px;
+    line-height: 1.6;
 }
 
 .word-content > div:last-child {
-    border-bottom: none;
+    margin-bottom: 0;
 }
 
-.phonetic {
-    font-family: 'Lucida Sans Unicode', sans-serif;
-    color: #e74c3c;
-    font-size: 1.1em;
+.translations {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 5px;
+    border-left: 4px solid #28a745;
 }
 
-.pronunciation {
-    color: #9b59b6;
-    font-weight: bold;
+.translations strong {
+    color: #28a745;
+    margin-right: 10px;
 }
 
-.pos {
-    color: #f39c12;
-    font-weight: bold;
+.phrases {
+    background: #fff3cd;
+    padding: 12px;
+    border-radius: 5px;
+    border-left: 4px solid #ffc107;
 }
 
-.translations ul, .phrases ul, .examples ol {
-    margin: 10px 0;
-    padding-left: 20px;
+.phrases strong {
+    color: #856404;
+    margin-right: 10px;
 }
 
-.translations li, .phrases li, .examples li {
-    margin: 5px 0;
-    color: #2c3e50;
+.etymology {
+    background: #e7f3ff;
+    padding: 12px;
+    border-radius: 5px;
+    border-left: 4px solid #007bff;
+}
+
+.etymology strong {
+    color: #004085;
+    margin-right: 10px;
+}
+
+.examples {
+    background: #f0f0f0;
+    padding: 12px;
+    border-radius: 5px;
+    border-left: 4px solid #6c757d;
+}
+
+.examples strong {
+    color: #495057;
+    margin-right: 10px;
 }
 
 /* 拼写卡片特殊样式 */
@@ -1491,6 +1493,12 @@ function playPronunciation(word, type) {
     
     .card-front {
         padding: 20px 15px;
+    }
+    
+    .word-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 }
 """
