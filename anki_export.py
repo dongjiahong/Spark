@@ -220,27 +220,13 @@ class AnkiExporter:
     color: #7f8c8d;
     font-style: italic;
     font-size: 16px;
+    font-weight: 500;
 }
 
 .pronunciation {
     color: #9b59b6;
-    font-size: 16px;
-    margin-left: 10px;
-}
-
-.play-btn {
-    background: none;
-    border: none;
     font-size: 14px;
-    cursor: pointer;
-    padding: 2px 5px;
-    margin-left: 5px;
-    border-radius: 3px;
-    transition: background-color 0.2s;
-}
-
-.play-btn:hover {
-    background-color: #f5f5f5;
+    margin-left: 10px;
 }
 
 /* 翻译 */
@@ -282,6 +268,14 @@ class AnkiExporter:
     font-weight: 500;
 }
 
+.phrase-item {
+    margin-bottom: 8px;
+}
+
+.phrase-item:last-child {
+    margin-bottom: 0;
+}
+
 /* 例句 */
 .examples {
     font-size: 15px;
@@ -297,12 +291,20 @@ class AnkiExporter:
     margin-bottom: 8px;
 }
 
+.example-item {
+    margin-bottom: 8px;
+}
+
+.example-item:last-child {
+    margin-bottom: 0;
+}
+
 .examples small {
     color: #888;
     font-size: 13px;
     display: block;
-    margin-top: 3px;
-    margin-bottom: 10px;
+    margin-top: 2px;
+    margin-bottom: 0;
 }
 
 /* 错误信息 */
@@ -442,16 +444,6 @@ class AnkiExporter:
         padding: 30px 15px;
     }
 }
-
-<script>
-function playPronunciation(word, type) {
-    const url = 'http://dict.youdao.com/dictvoice?type=' + type + '&audio=' + encodeURIComponent(word);
-    const audio = new Audio(url);
-    audio.play().catch(function(error) {
-        console.log('发音播放失败:', error);
-    });
-}
-</script>
 """
 
     def get_database_connection(self) -> sqlite3.Connection:
@@ -476,7 +468,7 @@ function playPronunciation(word, type) {
 
         sections = []
 
-        # 1. 音标和发音行
+        # 1. 音标和词性行（保留音标，删除发音功能）
         phonetic_line = []
 
         # 处理音标
@@ -491,25 +483,15 @@ function playPronunciation(word, type) {
                     phonetic_parts.append(f"美 {phonetic['US']}")
                 if phonetic_parts:
                     phonetic_text = " ".join(phonetic_parts)
-                    if word:
-                        phonetic_line.append(
-                            f'<span class="phonetic">{escape(phonetic_text)} <button class="play-btn" onclick="playPronunciation(\'{word}\', 0)">🔊</button></span>'
-                        )
-                    else:
-                        phonetic_line.append(
-                            f'<span class="phonetic">{escape(phonetic_text)}</span>'
-                        )
+                    phonetic_line.append(
+                        f'<span class="phonetic">{escape(phonetic_text)}</span>'
+                    )
             elif isinstance(phonetic, str) and phonetic.strip():
                 clean_phonetic = phonetic.strip("{}").strip()
                 if clean_phonetic:
-                    if word:
-                        phonetic_line.append(
-                            f'<span class="phonetic">{escape(clean_phonetic)} <button class="play-btn" onclick="playPronunciation(\'{word}\', 0)">🔊</button></span>'
-                        )
-                    else:
-                        phonetic_line.append(
-                            f'<span class="phonetic">{escape(clean_phonetic)}</span>'
-                        )
+                    phonetic_line.append(
+                        f'<span class="phonetic">{escape(clean_phonetic)}</span>'
+                    )
 
         # 处理词性
         if "part_of_speech" in content:
@@ -529,7 +511,7 @@ function playPronunciation(word, type) {
                         f'<span class="pos">{escape(pos_clean)}</span>'
                     )
 
-        # 处理发音分割
+        # 处理发音提示（圆点分割的单词发音）
         if "pronunciation" in content:
             pronunciation_text = (
                 content["pronunciation"].strip("{}").strip()
@@ -593,10 +575,12 @@ function playPronunciation(word, type) {
                             phrase_items.append(clean_phrase)
 
                 if phrase_items:
-                    phrases_text = " / ".join(phrase_items)
-                    sections.append(
-                        f'<div class="phrases">{escape(phrases_text)}</div>'
-                    )
+                    # 为每个短语添加单独的div包装，便于控制间距（和例句逻辑一样）
+                    phrase_divs = []
+                    for item in phrase_items:
+                        phrase_divs.append(f'<div class="phrase-item">{item}</div>')
+                    phrases_html = "".join(phrase_divs)
+                    sections.append(f'<div class="phrases">{phrases_html}</div>')
 
         # 5. 例句
         if "examples" in content:
@@ -621,7 +605,11 @@ function playPronunciation(word, type) {
                             example_items.append(clean_example)
 
                 if example_items:
-                    examples_html = "<br>".join(example_items)
+                    # 为每个例句添加单独的div包装，便于控制间距
+                    example_divs = []
+                    for item in example_items:
+                        example_divs.append(f'<div class="example-item">{item}</div>')
+                    examples_html = "".join(example_divs)
                     sections.append(f'<div class="examples">{examples_html}</div>')
 
         return f'<div class="word-content">{"".join(sections)}</div>'
