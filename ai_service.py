@@ -79,17 +79,36 @@ class AIService:
         Returns:
             Dict: 包含学习信息的字典
         """
-        prompt = f"""请为单词"{word}"生成完整的学习信息，以JSON格式返回，包含以下字段：
+        prompt = f"""请为单词"{word}"生成完整的学习信息，必须严格按照以下JSON格式返回：
 
-1. phonetic: 音标（英式和美式）
-2. pronunciation: 发音分割（用小圆点分隔，如con·tem·po·rary）
-3. part_of_speech: 词性（可能有多个）
-4. translations: 常用翻译（2-3个最常用的中文释义）
-5. common_phrases: 常用短语（1-2个带中文翻译）
-6. etymology: 词根词缀分析
-7. examples: 例句（2个句子，每个都要有中文翻译）
+{{
+    "phonetic": {{
+        "UK": "/英式音标/",
+        "US": "/美式音标/"
+    }},
+    "pronunciation": "发音分割，如con·tem·po·rary",
+    "part_of_speech": ["词性1", "词性2"],
+    "translations": ["翻译1", "翻译2", "翻译3"],
+    "common_phrases": [
+        {{"phrase": "常用短语1", "translation": "中文翻译1"}},
+        {{"phrase": "常用短语2", "translation": "中文翻译2"}}
+    ],
+    "etymology": {{
+        "root": "词根信息",
+        "analysis": "词根词缀详细分析"
+    }},
+    "examples": [
+        {{"sentence": "英文例句1", "translation": "中文翻译1"}},
+        {{"sentence": "英文例句2", "translation": "中文翻译2"}}
+    ]
+}}
 
-请确保返回的是有效的JSON格式，便于解析。"""
+要求：
+1. 严格按照上述JSON结构返回，不要添加额外字段
+2. 所有字段都必须存在，即使内容为空也要保留字段
+3. 音标必须使用UK/US格式
+4. 数组字段必须是数组格式，对象字段必须是对象格式
+5. 确保JSON格式完全有效，可直接解析"""
 
         messages = [
             {
@@ -103,10 +122,100 @@ class AIService:
             response = self._make_request(messages)
             # 尝试解析JSON
             learning_info = json.loads(response)
-            return learning_info
+            # 验证和标准化JSON格式
+            standardized_info = self._validate_and_standardize_word_info(learning_info)
+            return standardized_info
         except json.JSONDecodeError:
             # 如果JSON解析失败，返回错误信息
             return {"error": "无法解析AI返回的JSON格式", "raw_response": response}
+
+    def _validate_and_standardize_word_info(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        验证并标准化单词学习信息的JSON格式
+
+        Args:
+            data: 原始数据
+
+        Returns:
+            Dict: 标准化后的数据
+        """
+        standardized = {}
+        
+        # 标准化音标格式
+        phonetic = data.get("phonetic", {})
+        if isinstance(phonetic, str):
+            # 如果是字符串，尝试转换为标准格式
+            standardized["phonetic"] = {"UK": phonetic, "US": phonetic}
+        elif isinstance(phonetic, dict):
+            # 标准化键名
+            uk = phonetic.get("UK") or phonetic.get("British") or phonetic.get("uk") or ""
+            us = phonetic.get("US") or phonetic.get("American") or phonetic.get("us") or ""
+            standardized["phonetic"] = {"UK": uk, "US": us}
+        else:
+            standardized["phonetic"] = {"UK": "", "US": ""}
+        
+        # 标准化发音分割
+        standardized["pronunciation"] = str(data.get("pronunciation", ""))
+        
+        # 标准化词性（确保是数组）
+        pos = data.get("part_of_speech", [])
+        if isinstance(pos, str):
+            standardized["part_of_speech"] = [pos]
+        elif isinstance(pos, list):
+            standardized["part_of_speech"] = [str(p) for p in pos]
+        else:
+            standardized["part_of_speech"] = []
+        
+        # 标准化翻译（确保是数组）
+        translations = data.get("translations", [])
+        if isinstance(translations, str):
+            standardized["translations"] = [translations]
+        elif isinstance(translations, list):
+            standardized["translations"] = [str(t) for t in translations]
+        else:
+            standardized["translations"] = []
+        
+        # 标准化常用短语（确保是对象数组）
+        phrases = data.get("common_phrases", [])
+        standardized_phrases = []
+        if isinstance(phrases, list):
+            for phrase in phrases:
+                if isinstance(phrase, dict):
+                    standardized_phrases.append({
+                        "phrase": str(phrase.get("phrase", "")),
+                        "translation": str(phrase.get("translation", ""))
+                    })
+                elif isinstance(phrase, str):
+                    standardized_phrases.append({"phrase": phrase, "translation": ""})
+        standardized["common_phrases"] = standardized_phrases
+        
+        # 标准化词根词缀（确保是对象）
+        etymology = data.get("etymology", {})
+        if isinstance(etymology, dict):
+            standardized["etymology"] = {
+                "root": str(etymology.get("root", "")),
+                "analysis": str(etymology.get("analysis", ""))
+            }
+        elif isinstance(etymology, str):
+            standardized["etymology"] = {"root": "", "analysis": etymology}
+        else:
+            standardized["etymology"] = {"root": "", "analysis": ""}
+        
+        # 标准化例句（确保是对象数组）
+        examples = data.get("examples", [])
+        standardized_examples = []
+        if isinstance(examples, list):
+            for example in examples:
+                if isinstance(example, dict):
+                    standardized_examples.append({
+                        "sentence": str(example.get("sentence", "")),
+                        "translation": str(example.get("translation", ""))
+                    })
+                elif isinstance(example, str):
+                    standardized_examples.append({"sentence": example, "translation": ""})
+        standardized["examples"] = standardized_examples
+        
+        return standardized
 
     def generate_essay(
         self, words: List[str], essay_type: str = "story"

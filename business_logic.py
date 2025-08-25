@@ -208,6 +208,8 @@ class WordManager:
 
         # 2. 为每个单词生成学习信息
         words_with_content = []
+        successful_words = []  # 记录成功生成学习内容的单词
+        
         for word_data in selected_words:
             print(f"正在为单词 '{word_data['word']}' 生成学习信息...")
 
@@ -216,36 +218,45 @@ class WordManager:
                 word_data["word"]
             )
 
-            # 保存到数据库
+            # 检查生成是否成功
             if "error" not in learning_content:
-                self.save_word_learning_content(word_data["id"], learning_content)
-                print(f"✓ 单词 '{word_data['word']}' 学习信息已保存")
+                # 成功：保存到数据库并更新count
+                save_success = self.save_word_learning_content(word_data["id"], learning_content)
+                if save_success:
+                    self.update_word_count(word_data["id"])
+                    successful_words.append(word_data["word"])
+                    print(f"✓ 单词 '{word_data['word']}' 学习信息已生成并保存")
+                else:
+                    print(f"✗ 单词 '{word_data['word']}' 学习信息保存失败")
+                    # 保存失败时将错误信息记录到learning_content
+                    learning_content = {"error": "学习内容保存失败"}
             else:
-                print(
-                    f"✗ 单词 '{word_data['word']}' 学习信息生成失败: {learning_content.get('error')}"
-                )
+                # 失败：不更新count，保持原状态以便下次重新选择
+                print(f"✗ 单词 '{word_data['word']}' 学习信息生成失败: {learning_content.get('error')}")
+                print(f"  → 单词状态未更新，下次学习时会重新选择")
 
-            # 更新count
-            self.update_word_count(word_data["id"])
-
-            # 添加到结果中
+            # 添加到结果中（无论成功失败都添加，但失败的包含错误信息）
             word_data_copy = dict(word_data)
             word_data_copy["learning_content"] = learning_content
             words_with_content.append(word_data_copy)
 
-        # 3. 生成短文
-        word_list = [w["word"] for w in selected_words]
-        print(f"正在为单词 {word_list} 生成{essay_type}...")
-
-        essay_content = self.ai_service.generate_essay(word_list, essay_type)
-
-        # 保存短文
+        # 3. 生成短文（只为成功生成学习信息的单词生成短文）
+        essay_content = {}
         essay_id = None
-        if "error" not in essay_content:
-            essay_id = self.save_essay(word_list, essay_content)
-            print(f"✓ 短文已保存，ID: {essay_id}")
+        
+        if successful_words:
+            print(f"正在为成功的单词 {successful_words} 生成{essay_type}...")
+            essay_content = self.ai_service.generate_essay(successful_words, essay_type)
+
+            # 保存短文
+            if "error" not in essay_content:
+                essay_id = self.save_essay(successful_words, essay_content)
+                print(f"✓ 短文已保存，ID: {essay_id}")
+            else:
+                print(f"✗ 短文生成失败: {essay_content.get('error')}")
         else:
-            print(f"✗ 短文生成失败: {essay_content.get('error')}")
+            print("没有成功生成学习信息的单词，跳过短文生成")
+            essay_content = {"error": "没有可用单词生成短文"}
 
         return {
             "words": words_with_content,
@@ -253,6 +264,7 @@ class WordManager:
             "essay_id": essay_id,
             "session_summary": {
                 "word_count": len(selected_words),
+                "successful_words": len(successful_words),
                 "essay_type": essay_type,
                 "generated_at": datetime.now().isoformat(),
             },

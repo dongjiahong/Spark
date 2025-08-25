@@ -157,12 +157,18 @@ class TOEFLViewer {
             const translations = learnContent.translations || [];
             const partOfSpeech = learnContent.part_of_speech || [];
             const examples = learnContent.examples || [];
+            const commonPhrases = learnContent.common_phrases || [];
+            const etymology = learnContent.etymology || {};
 
             return `
                 <div class="word-card">
                     <div class="word-header">
                         <span class="word-text">${word.word}</span>
-                        ${phonetic ? `<span class="word-phonetic">${phonetic}</span>` : ''}
+                        <div class="pronunciation-buttons">
+                            ${phonetic ? `<span class="word-phonetic">${phonetic}</span>` : ''}
+                            <button class="pronunciation-btn uk-btn" onclick="playPronunciation('${word.word}', 'uk')" title="英式发音">🇬🇧</button>
+                            <button class="pronunciation-btn us-btn" onclick="playPronunciation('${word.word}', 'us')" title="美式发音">🇺🇸</button>
+                        </div>
                     </div>
                     ${learnContent.pronunciation ? `
                         <div class="word-pronunciation">${learnContent.pronunciation}</div>
@@ -175,11 +181,30 @@ class TOEFLViewer {
                             <div class="word-translations">${translations.join('；')}</div>
                         ` : ''}
                     </div>
+                    ${commonPhrases.length > 0 ? `
+                        <div class="word-phrases">
+                            <div class="section-title">常用短语</div>
+                            ${commonPhrases.map(phrase => `
+                                <div class="word-phrase">
+                                    <span class="phrase-text">${phrase.phrase || ''}</span>
+                                    <span class="phrase-translation">${phrase.translation || ''}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${etymology.root || etymology.analysis ? `
+                        <div class="word-etymology">
+                            <div class="section-title">词根词缀</div>
+                            ${etymology.root ? `<div class="etymology-root">词根：${etymology.root}</div>` : ''}
+                            ${etymology.analysis ? `<div class="etymology-analysis">${etymology.analysis}</div>` : ''}
+                        </div>
+                    ` : ''}
                     ${examples.length > 0 ? `
                         <div class="word-examples">
+                            <div class="section-title">例句</div>
                             ${examples.slice(0, 2).map(example => `
                                 <div class="word-example">
-                                    <div>${example.sentence || ''}</div>
+                                    <div class="example-sentence">${example.sentence || ''}</div>
                                     <div class="word-example-translation">${example.translation || ''}</div>
                                 </div>
                             `).join('')}
@@ -311,6 +336,84 @@ class TOEFLViewer {
     hideError() {
         document.getElementById('error').style.display = 'none';
     }
+}
+
+/**
+ * 播放单词发音
+ * @param {string} word - 单词
+ * @param {string} accent - 口音类型 (uk/us)
+ */
+function playPronunciation(word, accent) {
+    try {
+        const audio = new Audio();
+        // 使用有道词典API
+        if (accent === 'uk') {
+            audio.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=1`;
+        } else {
+            audio.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(word)}&type=0`;
+        }
+        
+        audio.play().catch(error => {
+            console.error('发音播放失败:', error);
+            // 如果有道API失败，可以尝试其他发音源
+            playFallbackPronunciation(word, accent);
+        });
+    } catch (error) {
+        console.error('发音初始化失败:', error);
+    }
+}
+
+/**
+ * 备用发音播放（当有道API失败时使用）
+ * @param {string} word - 单词
+ * @param {string} accent - 口音类型
+ */
+function playFallbackPronunciation(word, accent) {
+    try {
+        const audio = new Audio();
+        // 使用其他发音API作为备用
+        audio.src = `https://ssl.gstatic.com/dictionary/static/sounds/oxford/${word}--_${accent === 'uk' ? 'gb' : 'us'}_1.mp3`;
+        
+        audio.play().catch(error => {
+            console.error('备用发音也播放失败:', error);
+            // 可以显示一个提示信息
+            showPronunciationError(word);
+        });
+    } catch (error) {
+        console.error('备用发音初始化失败:', error);
+    }
+}
+
+/**
+ * 显示发音错误提示
+ * @param {string} word - 单词
+ */
+function showPronunciationError(word) {
+    // 创建一个临时提示
+    const toast = document.createElement('div');
+    toast.className = 'pronunciation-toast';
+    toast.textContent = `"${word}" 发音暂时无法播放`;
+    toast.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        z-index: 10000;
+        font-size: 14px;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // 3秒后自动移除
+    setTimeout(() => {
+        if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+        }
+    }, 3000);
 }
 
 // 页面加载完成后初始化应用

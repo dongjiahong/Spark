@@ -104,8 +104,8 @@ body {
 
 .word-header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
     margin-bottom: 0.8rem;
 }
 
@@ -115,10 +115,39 @@ body {
     color: #2c3e50;
 }
 
+.pronunciation-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
 .word-phonetic {
     font-size: 0.85rem;
     color: #666;
     font-style: italic;
+    margin-right: 0.5rem;
+}
+
+.pronunciation-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 0.2rem 0.3rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    min-width: 28px;
+    height: 24px;
+}
+
+.pronunciation-btn:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+    transform: translateY(-1px);
+}
+
+.pronunciation-btn:active {
+    transform: translateY(0);
 }
 
 .word-pronunciation {
@@ -142,6 +171,57 @@ body {
     color: #2c3e50;
 }
 
+.section-title {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 0.3rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.2rem;
+}
+
+.word-phrases {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.word-phrase {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+}
+
+.phrase-text {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.phrase-translation {
+    color: #666;
+    font-style: italic;
+}
+
+.word-etymology {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.etymology-root {
+    color: #667eea;
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+}
+
+.etymology-analysis {
+    color: #555;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
 .word-examples {
     margin-top: 0.5rem;
     padding-top: 0.5rem;
@@ -149,9 +229,13 @@ body {
 }
 
 .word-example {
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.4rem;
+}
+
+.example-sentence {
     font-style: italic;
     color: #555;
+    margin-bottom: 0.1rem;
 }
 
 .word-example-translation {
