@@ -291,64 +291,67 @@ class AnkiExporter:
     def _get_card_css(self) -> str:
         """获取卡片CSS样式"""
         return """
-/* TOEFL单词卡片 - 极简设计 */
+/* TOEFL单词卡片 - 紧凑美观设计 */
 
 .card {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    line-height: 1.5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.4;
     color: #333;
-    padding: 20px;
-    max-width: 600px;
+    padding: 12px;
+    max-width: 520px;
     margin: 0 auto;
+    background: #fafafa;
+    border-radius: 6px;
 }
 
 /* 正面卡片 */
 .card-front {
     text-align: center;
-    padding: 40px 20px;
+    padding: 25px 15px;
 }
 
 .word {
-    font-size: 2.5em;
-    font-weight: 300;
+    font-size: 2.2em;
+    font-weight: 400;
     color: #2c3e50;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
+    margin-bottom: 15px;
+    letter-spacing: 0.5px;
 }
 
 .hint {
     color: #666;
-    font-size: 16px;
-    margin-top: 30px;
+    font-size: 14px;
+    margin-top: 20px;
+    font-style: italic;
 }
 
 /* 发音按钮容器 - 正面卡片 */
 .pronunciation-buttons {
-    margin: 20px 0;
+    margin: 12px 0;
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
 }
 
 /* 发音按钮样式 */
 .pronunciation-btn {
     background: none;
-    border: 2px solid #ddd;
-    font-size: 1.2em;
+    border: 1px solid #ddd;
+    font-size: 1em;
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    min-width: 50px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    min-width: 40px;
     background: linear-gradient(145deg, #f8f9fa, #e9ecef);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 .pronunciation-btn:hover {
     background: linear-gradient(145deg, #e9ecef, #dee2e6);
     border-color: #3498db;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.15);
 }
 
 .pronunciation-btn:active {
@@ -364,9 +367,9 @@ class AnkiExporter:
 
 /* 音标行中的发音按钮 */
 .phonetic .pronunciation-btn {
-    font-size: 0.9em;
-    padding: 4px 8px;
-    margin-left: 10px;
+    font-size: 0.85em;
+    padding: 3px 6px;
+    margin-left: 8px;
     border: 1px solid #ddd;
     background: white;
     border-radius: 4px;
@@ -374,125 +377,147 @@ class AnkiExporter:
 
 /* 背面卡片内容 */
 .card-back {
-    padding: 20px;
+    padding: 15px;
 }
 
-.word-content {
-    line-height: 1.6;
+/* Web版单词卡片样式 */
+.word-card {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    line-height: 1.5;
 }
 
-.word-content > div {
-    margin-bottom: 15px;
+.word-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
-.word-content > div:last-child {
-    margin-bottom: 0;
-}
-
-/* 音标和词性行 */
-.phonetic-line {
-    font-size: 18px;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.phonetic {
-    color: #e74c3c;
-    font-family: 'Times New Roman', serif;
-    font-size: 18px;
-    margin-right: 15px;
-}
-
-.pos {
-    color: #7f8c8d;
-    font-style: italic;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.pronunciation {
-    color: #9b59b6;
-    font-size: 14px;
-    margin-left: 10px;
-}
-
-/* 翻译 */
-.meanings {
-    font-size: 20px;
-    font-weight: 500;
+.word-text {
+    font-size: 1.1em;
+    font-weight: bold;
     color: #2c3e50;
-    margin-bottom: 20px;
+}
+
+.pronunciation-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.word-phonetic {
+    font-size: 0.85rem;
+    color: #666;
+    font-style: italic;
+    margin-right: 0.5rem;
+}
+
+.word-pronunciation {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 0.5rem;
+}
+
+.word-info {
+    display: grid;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.word-pos {
+    color: #667eea;
+    font-weight: 500;
+}
+
+.word-translations {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.section-title {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #495057;
+    margin-bottom: 0.3rem;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.2rem;
+}
+
+.word-phrases {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.word-phrase {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+}
+
+.phrase-text {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.phrase-translation {
+    color: #666;
+    font-style: italic;
+}
+
+.word-etymology {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.etymology-root {
+    color: #667eea;
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+}
+
+.etymology-analysis {
+    color: #555;
+    font-size: 0.8rem;
     line-height: 1.4;
 }
 
-/* 词根 */
-.etymology {
-    color: #666;
-    font-size: 14px;
+.word-examples {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.word-example {
+    margin-bottom: 0.4rem;
+}
+
+.example-sentence {
     font-style: italic;
-    margin-bottom: 15px;
-    padding-left: 10px;
-    border-left: 2px solid #ddd;
-}
-
-.etymology::before {
-    content: "词根: ";
-    color: #7f8c8d;
-    font-weight: 500;
-    font-style: normal;
-}
-
-/* 短语 */
-.phrases {
-    font-size: 16px;
     color: #555;
-    margin-bottom: 15px;
+    margin-bottom: 0.1rem;
 }
 
-.phrases::before {
-    content: "短语: ";
-    color: #7f8c8d;
+.word-example-translation {
+    color: #777;
+    font-size: 0.8rem;
+}
+
+/* 保持旧版兼容性的部分样式 */
+.meanings {
+    font-size: 18px;
     font-weight: 500;
-}
-
-.phrase-item {
-    margin-bottom: 8px;
-}
-
-.phrase-item:last-child {
-    margin-bottom: 0;
-}
-
-/* 例句 */
-.examples {
-    font-size: 15px;
-    color: #555;
-    line-height: 1.6;
-}
-
-.examples::before {
-    content: "例句:";
-    color: #7f8c8d;
-    font-weight: 500;
-    display: block;
-    margin-bottom: 8px;
-}
-
-.example-item {
-    margin-bottom: 8px;
-}
-
-.example-item:last-child {
-    margin-bottom: 0;
-}
-
-.examples small {
-    color: #888;
-    font-size: 13px;
-    display: block;
-    margin-top: 2px;
-    margin-bottom: 0;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    line-height: 1.3;
 }
 
 /* 错误信息 */
@@ -553,16 +578,16 @@ class AnkiExporter:
 
 /* 短文卡片 */
 .english-text, .chinese-text {
-    padding: 20px;
-    line-height: 1.8;
-    font-size: 16px;
+    padding: 15px;
+    line-height: 1.6;
+    font-size: 15px;
     border-left: 3px solid #3498db;
-    margin: 20px 0;
+    margin: 15px 0;
 }
 
 .translation-pair > div {
-    margin-bottom: 20px;
-    padding: 15px;
+    margin-bottom: 15px;
+    padding: 12px;
     border-radius: 5px;
 }
 
@@ -617,35 +642,48 @@ class AnkiExporter:
 /* 响应式 */
 @media (max-width: 768px) {
     .card {
-        padding: 15px;
+        padding: 10px;
     }
     
     .word {
-        font-size: 2em;
+        font-size: 1.8em;
     }
     
     .meanings {
-        font-size: 18px;
+        font-size: 16px;
     }
     
     .card-front {
-        padding: 30px 15px;
+        padding: 20px 12px;
+    }
+    
+    .card-back {
+        padding: 12px;
     }
     
     /* 移动端发音按钮 */
     .pronunciation-buttons {
-        gap: 10px;
+        gap: 8px;
+        margin: 10px 0;
     }
     
     .pronunciation-btn {
-        font-size: 1.1em;
-        padding: 6px 10px;
-        min-width: 45px;
+        font-size: 0.9em;
+        padding: 5px 8px;
+        min-width: 35px;
     }
     
     .phonetic .pronunciation-btn {
-        font-size: 0.8em;
-        padding: 3px 6px;
+        font-size: 0.75em;
+        padding: 2px 5px;
+    }
+    
+    .phonetic-line {
+        font-size: 14px;
+    }
+    
+    .word-content > div {
+        margin-bottom: 8px;
     }
 }
 """
@@ -658,7 +696,7 @@ class AnkiExporter:
 
     def _format_learning_content(self, content: Dict[str, Any], word: str = "") -> str:
         """
-        格式化学习内容为HTML - 极简干净设计
+        格式化学习内容为HTML - 使用与Web版相同的布局结构
 
         Args:
             content: 学习内容字典
@@ -670,171 +708,167 @@ class AnkiExporter:
         if not content or "error" in content:
             return "<div class='error'>学习内容生成失败</div>"
 
-        sections = []
+        # 处理数据提取
+        phonetic = self._format_phonetic(content.get("phonetic"))
+        translations = content.get("translations", [])
+        part_of_speech = content.get("part_of_speech", [])
+        examples = content.get("examples", [])
+        common_phrases = content.get("common_phrases", [])
+        etymology = content.get("etymology", {})
+        pronunciation = content.get("pronunciation", "")
 
-        # 1. 音标和词性行（添加发音功能）
-        phonetic_line = []
+        # 构建HTML - 使用与Web版相同的结构
+        html = f'''
+        <div class="word-card">
+            <div class="word-header">
+                <span class="word-text">{escape(word)}</span>
+                <div class="pronunciation-buttons">
+                    {f'<span class="word-phonetic">{escape(phonetic)}</span>' if phonetic else ''}
+                    <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 1)" title="英式发音">🇬🇧</button>
+                    <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 0)" title="美式发音">🇺🇸</button>
+                </div>
+            </div>
+            {f'<div class="word-pronunciation">{escape(pronunciation)}</div>' if pronunciation else ''}
+            <div class="word-info">
+                {f'<div class="word-pos">{escape(self._format_part_of_speech(part_of_speech))}</div>' if part_of_speech else ''}
+                {f'<div class="word-translations">{escape(self._format_translations(translations))}</div>' if translations else ''}
+            </div>
+            {self._format_phrases_section(common_phrases)}
+            {self._format_etymology_section(etymology)}
+            {self._format_examples_section(examples)}
+        </div>
+        '''
+        
+        return html.strip()
 
-        # 处理音标
-        if "phonetic" in content:
-            phonetic = content["phonetic"]
-            if isinstance(phonetic, dict):
-                # 从字典中提取音标
-                phonetic_parts = []
-                if "UK" in phonetic and phonetic["UK"]:
-                    phonetic_parts.append(f"英 {phonetic['UK']}")
-                if "US" in phonetic and phonetic["US"]:
-                    phonetic_parts.append(f"美 {phonetic['US']}")
-                if phonetic_parts:
-                    phonetic_text = " ".join(phonetic_parts)
-                    # 添加发音按钮
-                    pronunciation_buttons = f'''
-                        <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 1)" title="英式发音">🇬🇧</button>
-                        <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 0)" title="美式发音">🇺🇸</button>
-                    '''
-                    phonetic_line.append(
-                        f'<span class="phonetic">{escape(phonetic_text)} {pronunciation_buttons}</span>'
-                    )
-            elif isinstance(phonetic, str) and phonetic.strip():
-                clean_phonetic = phonetic.strip("{}").strip()
-                if clean_phonetic:
-                    # 添加发音按钮
-                    pronunciation_buttons = f'''
-                        <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 1)" title="英式发音">🇬🇧</button>
-                        <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 0)" title="美式发音">🇺🇸</button>
-                    '''
-                    phonetic_line.append(
-                        f'<span class="phonetic">{escape(clean_phonetic)} {pronunciation_buttons}</span>'
-                    )
+    def _format_phonetic(self, phonetic) -> str:
+        """格式化音标"""
+        if not phonetic:
+            return ""
+        
+        if isinstance(phonetic, dict):
+            phonetic_parts = []
+            if phonetic.get("UK"):
+                phonetic_parts.append(f"英 {phonetic['UK']}")
+            if phonetic.get("US"):
+                phonetic_parts.append(f"美 {phonetic['US']}")
+            return " ".join(phonetic_parts)
+        elif isinstance(phonetic, str):
+            return phonetic.strip("{}").strip()
+        
+        return ""
 
-        # 处理词性
-        if "part_of_speech" in content:
-            pos = content["part_of_speech"]
-            if isinstance(pos, list):
-                pos_clean = [
-                    p.strip("{}").strip() for p in pos if p.strip("{}").strip()
-                ]
-                if pos_clean:
-                    phonetic_line.append(
-                        f'<span class="pos">{escape(" ".join(pos_clean))}</span>'
-                    )
-            elif isinstance(pos, str) and pos.strip():
-                pos_clean = pos.strip("{}").strip()
-                if pos_clean:
-                    phonetic_line.append(
-                        f'<span class="pos">{escape(pos_clean)}</span>'
-                    )
+    def _format_part_of_speech(self, pos) -> str:
+        """格式化词性"""
+        if isinstance(pos, list):
+            return ", ".join([p.strip("{}").strip() for p in pos if p.strip("{}").strip()])
+        elif isinstance(pos, str):
+            return pos.strip("{}").strip()
+        return ""
 
-        # 处理发音提示（圆点分割的单词发音）
-        if "pronunciation" in content:
-            pronunciation_text = (
-                content["pronunciation"].strip("{}").strip()
-                if isinstance(content["pronunciation"], str)
-                else str(content["pronunciation"])
-            )
-            if pronunciation_text:
-                phonetic_line.append(
-                    f'<span class="pronunciation">{escape(pronunciation_text)}</span>'
-                )
+    def _format_translations(self, translations) -> str:
+        """格式化翻译"""
+        if isinstance(translations, list):
+            clean_translations = [str(t).strip("{}").strip() for t in translations if str(t).strip("{}").strip()]
+            return "；".join(clean_translations)
+        elif isinstance(translations, str):
+            return translations.strip("{}").strip()
+        return ""
 
-        # 如果没有音标信息但有单词，添加独立的发音按钮
-        if not phonetic_line and word:
-            pronunciation_buttons = f'''
-                <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 1)" title="英式发音">🇬🇧</button>
-                <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 0)" title="美式发音">🇺🇸</button>
+    def _format_phrases_section(self, phrases) -> str:
+        """格式化短语部分"""
+        if not phrases:
+            return ""
+        
+        phrase_items = []
+        if isinstance(phrases, list):
+            for phrase_item in phrases:
+                if isinstance(phrase_item, dict):
+                    phrase_text = phrase_item.get("phrase", "").strip()
+                    translation = phrase_item.get("translation", "").strip()
+                    if phrase_text:
+                        phrase_items.append(f'''
+                            <div class="word-phrase">
+                                <span class="phrase-text">{escape(phrase_text)}</span>
+                                <span class="phrase-translation">{escape(translation) if translation else ''}</span>
+                            </div>
+                        ''')
+                elif isinstance(phrase_item, str):
+                    clean_phrase = phrase_item.strip("{}").strip()
+                    if clean_phrase:
+                        phrase_items.append(f'''
+                            <div class="word-phrase">
+                                <span class="phrase-text">{escape(clean_phrase)}</span>
+                            </div>
+                        ''')
+        
+        if phrase_items:
+            return f'''
+            <div class="word-phrases">
+                <div class="section-title">常用短语</div>
+                {"".join(phrase_items)}
+            </div>
             '''
-            phonetic_line.append(f'<span class="pronunciation-only">{pronunciation_buttons}</span>')
+        return ""
 
-        if phonetic_line:
-            sections.append(
-                f'<div class="phonetic-line">{" ".join(phonetic_line)}</div>'
-            )
+    def _format_etymology_section(self, etymology) -> str:
+        """格式化词根词缀部分"""
+        if not etymology:
+            return ""
+        
+        etymology_content = []
+        if isinstance(etymology, dict):
+            if etymology.get("root"):
+                etymology_content.append(f'<div class="etymology-root">词根：{escape(etymology["root"])}</div>')
+            if etymology.get("analysis"):
+                etymology_content.append(f'<div class="etymology-analysis">{escape(etymology["analysis"])}</div>')
+        elif isinstance(etymology, str) and etymology.strip():
+            etymology_content.append(f'<div class="etymology-analysis">{escape(etymology.strip())}</div>')
+        
+        if etymology_content:
+            return f'''
+            <div class="word-etymology">
+                <div class="section-title">词根词缀</div>
+                {"".join(etymology_content)}
+            </div>
+            '''
+        return ""
 
-        # 2. 翻译
-        if "translations" in content:
-            translations = content["translations"]
-            if isinstance(translations, list):
-                clean_translations = [
-                    str(t).strip("{}").strip()
-                    for t in translations
-                    if str(t).strip("{}").strip()
-                ]
-                if clean_translations:
-                    sections.append(
-                        f'<div class="meanings">{escape(" / ".join(clean_translations))}</div>'
-                    )
-            elif isinstance(translations, str) and translations.strip():
-                clean_trans = translations.strip("{}").strip()
-                if clean_trans:
-                    sections.append(
-                        f'<div class="meanings">{escape(clean_trans)}</div>'
-                    )
-
-        # 3. 词根词缀（如果有）
-        if "etymology" in content and content["etymology"]:
-            etymology = str(content["etymology"]).strip("{}").strip()
-            if etymology:
-                sections.append(f'<div class="etymology">{escape(etymology)}</div>')
-
-        # 4. 短语
-        if "common_phrases" in content:
-            phrases = content["common_phrases"]
-            if isinstance(phrases, list):
-                phrase_items = []
-                for phrase_item in phrases:
-                    if isinstance(phrase_item, dict):
-                        # 从字典中提取短语和翻译
-                        phrase_text = phrase_item.get("phrase", "").strip()
-                        translation = phrase_item.get("translation", "").strip()
-                        if phrase_text:
-                            if translation:
-                                phrase_items.append(f"{phrase_text} {translation}")
-                            else:
-                                phrase_items.append(phrase_text)
-                    elif isinstance(phrase_item, str):
-                        clean_phrase = phrase_item.strip("{}").strip()
-                        if clean_phrase:
-                            phrase_items.append(clean_phrase)
-
-                if phrase_items:
-                    # 为每个短语添加单独的div包装，便于控制间距（和例句逻辑一样）
-                    phrase_divs = []
-                    for item in phrase_items:
-                        phrase_divs.append(f'<div class="phrase-item">{item}</div>')
-                    phrases_html = "".join(phrase_divs)
-                    sections.append(f'<div class="phrases">{phrases_html}</div>')
-
-        # 5. 例句
-        if "examples" in content:
-            examples = content["examples"]
-            if isinstance(examples, list):
-                example_items = []
-                for example_item in examples[:2]:  # 只显示前2个例句
-                    if isinstance(example_item, dict):
-                        # 从字典中提取例句和翻译
-                        sentence = example_item.get("sentence", "").strip()
-                        translation = example_item.get("translation", "").strip()
-                        if sentence:
-                            if translation:
-                                example_items.append(
-                                    f"{sentence}<br><small>{translation}</small>"
-                                )
-                            else:
-                                example_items.append(sentence)
-                    elif isinstance(example_item, str):
-                        clean_example = example_item.strip("{}").strip()
-                        if clean_example:
-                            example_items.append(clean_example)
-
-                if example_items:
-                    # 为每个例句添加单独的div包装，便于控制间距
-                    example_divs = []
-                    for item in example_items:
-                        example_divs.append(f'<div class="example-item">{item}</div>')
-                    examples_html = "".join(example_divs)
-                    sections.append(f'<div class="examples">{examples_html}</div>')
-
-        return f'<div class="word-content">{"".join(sections)}</div>'
+    def _format_examples_section(self, examples) -> str:
+        """格式化例句部分"""
+        if not examples:
+            return ""
+        
+        example_items = []
+        if isinstance(examples, list):
+            for example_item in examples[:2]:  # 只显示前2个例句
+                if isinstance(example_item, dict):
+                    sentence = example_item.get("sentence", "").strip()
+                    translation = example_item.get("translation", "").strip()
+                    if sentence:
+                        example_items.append(f'''
+                            <div class="word-example">
+                                <div class="example-sentence">{escape(sentence)}</div>
+                                <div class="word-example-translation">{escape(translation) if translation else ''}</div>
+                            </div>
+                        ''')
+                elif isinstance(example_item, str):
+                    clean_example = example_item.strip("{}").strip()
+                    if clean_example:
+                        example_items.append(f'''
+                            <div class="word-example">
+                                <div class="example-sentence">{escape(clean_example)}</div>
+                            </div>
+                        ''')
+        
+        if example_items:
+            return f'''
+            <div class="word-examples">
+                <div class="section-title">例句</div>
+                {"".join(example_items)}
+            </div>
+            '''
+        return ""
 
     def _create_word_recognition_card(
         self, word: str, content: Dict[str, Any]

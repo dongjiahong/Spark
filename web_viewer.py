@@ -147,6 +147,14 @@ class WebDataManager:
 # 初始化数据管理器
 data_manager = WebDataManager()
 
+# 动态导入业务逻辑模块
+try:
+    from business_logic import WordManager
+    word_manager = WordManager()
+except ImportError:
+    word_manager = None
+    print("警告: 无法导入business_logic模块，生成功能将不可用")
+
 @app.route('/')
 def index():
     """主页面"""
@@ -194,6 +202,45 @@ def get_stats():
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
+
+@app.route('/api/generate', methods=['POST'])
+def generate_new_essay():
+    """生成新短文API"""
+    if not word_manager:
+        return jsonify({'error': '生成功能不可用，请检查business_logic模块'}), 500
+    
+    try:
+        # 获取请求参数
+        data = request.get_json() or {}
+        word_count = data.get('word_count', 10)  # 默认10个单词
+        essay_type = data.get('essay_type', 'story')  # 默认故事类型
+        
+        # 生成新的学习会话
+        result = word_manager.generate_learning_session(
+            word_count=word_count, 
+            essay_type=essay_type
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': f'成功生成包含{word_count}个单词的{essay_type}',
+            'essay_id': result.get('essay_id'),
+            'words_processed': result.get('words_processed', [])
+        })
+    
+    except Exception as e:
+        return jsonify({'error': f'生成失败: {str(e)}'}), 500
+
+@app.route('/api/generate/progress')
+def get_generation_progress():
+    """获取生成进度API（简化版本，实际可能需要更复杂的状态管理）"""
+    # 这里返回模拟的进度信息，实际项目中可能需要Redis等来管理状态
+    return jsonify({
+        'progress': 100,  # 百分比
+        'status': '完成',
+        'current_step': '短文生成完成',
+        'total_steps': 4
+    })
 
 if __name__ == '__main__':
     print("启动TOEFL单词学习系统Web查看器...")

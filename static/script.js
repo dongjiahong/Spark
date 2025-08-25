@@ -29,6 +29,11 @@ class TOEFLViewer {
             this.toggleTranslation();
         });
 
+        // 生成新短文按钮
+        document.getElementById('generate-btn').addEventListener('click', () => {
+            this.generateNewEssay();
+        });
+
         // 分页按钮
         document.getElementById('prev-btn').addEventListener('click', () => {
             if (this.currentPage > 1) {
@@ -335,6 +340,116 @@ class TOEFLViewer {
      */
     hideError() {
         document.getElementById('error').style.display = 'none';
+    }
+
+    /**
+     * 生成新短文
+     */
+    async generateNewEssay() {
+        const button = document.getElementById('generate-btn');
+        const icon = document.getElementById('generate-icon');
+        const text = document.getElementById('generate-text');
+        const progressContainer = document.getElementById('progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        const progressStatus = document.getElementById('progress-status');
+
+        // 禁用按钮并显示进度
+        button.disabled = true;
+        icon.textContent = '⏳';
+        text.textContent = '生成中...';
+        progressContainer.style.display = 'flex';
+        progressFill.style.width = '0%';
+        progressStatus.textContent = '开始生成...';
+
+        try {
+            // 模拟进度更新
+            const updateProgress = (progress, status) => {
+                progressFill.style.width = progress + '%';
+                progressStatus.textContent = status;
+            };
+
+            updateProgress(25, '选择单词中...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            updateProgress(50, '生成学习内容...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            updateProgress(75, '创建短文...');
+
+            // 发送生成请求
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    word_count: 10,
+                    essay_type: 'story'
+                })
+            });
+
+            const result = await response.json();
+
+            updateProgress(100, '生成完成！');
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            if (result.success) {
+                // 重新加载统计信息
+                this.loadStats();
+                
+                // 跳到第一页查看新生成的内容
+                this.loadPage(1);
+                
+                // 显示成功消息
+                this.showSuccessMessage(result.message);
+            } else {
+                throw new Error(result.error || '生成失败');
+            }
+
+        } catch (error) {
+            console.error('生成新短文失败:', error);
+            this.showError(`生成失败: ${error.message}`);
+        } finally {
+            // 恢复按钮状态
+            setTimeout(() => {
+                button.disabled = false;
+                icon.textContent = '📚';
+                text.textContent = '再来一组';
+                progressContainer.style.display = 'none';
+            }, 1000);
+        }
+    }
+
+    /**
+     * 显示成功消息
+     */
+    showSuccessMessage(message) {
+        // 创建临时成功提示
+        const toast = document.createElement('div');
+        toast.className = 'success-toast';
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // 3秒后自动移除
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 3000);
     }
 }
 
