@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEFL单词学习系统 - Web查看器</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <h1>TOEFL单词学习系统</h1>
+            <div id="stats" class="stats">
+                <span>加载统计中...</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <span>加载数据中...</span>
+            </div>
+
+            <div id="content" class="content-container" style="display: none;">
+                <!-- 单词信息区域 -->
+                <section class="words-section">
+                    <h2>相关单词</h2>
+                    <div id="words-list" class="words-grid">
+                        <!-- 单词卡片将在这里动态生成 -->
+                    </div>
+                </section>
+
+                <!-- 短文内容区域 -->
+                <section class="essay-section">
+                    <h2 id="essay-title" class="essay-title">短文标题</h2>
+                    <div class="essay-content">
+                        <div class="essay-english">
+                            <h3>英文内容</h3>
+                            <div id="essay-english-content" class="content-text">
+                                <!-- 英文内容 -->
+                            </div>
+                        </div>
+                        <div class="essay-chinese">
+                            <h3>
+                                中文翻译
+                                <button id="toggle-translation" class="toggle-btn">显示</button>
+                            </h3>
+                            <div id="essay-chinese-content" class="content-text translation-hidden">
+                                <!-- 中文翻译 -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 分页导航 -->
+            <nav id="pagination" class="pagination" style="display: none;">
+                <div class="pagination-info">
+                    <span id="page-info">第 1 页，共 1 页</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="prev-btn" class="page-btn" disabled>上一页</button>
+                    <button id="next-btn" class="page-btn" disabled>下一页</button>
+                </div>
+            </nav>
+
+            <!-- 错误提示 -->
+            <div id="error" class="error" style="display: none;">
+                <h3>加载失败</h3>
+                <p id="error-message">请检查网络连接或稍后重试</p>
+                <button id="retry-btn" class="retry-btn">重试</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
