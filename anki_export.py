@@ -49,14 +49,152 @@ class AnkiExporter:
                     "qfmt": """
                         <div class="card-front word-recognition">
                             <h2 class="word">{{Word}}</h2>
+                            <div class="pronunciation-buttons">
+                                <button class="pronunciation-btn" onclick="playPronunciation('{{Word}}', 1)" title="英式发音">🇬🇧</button>
+                                <button class="pronunciation-btn" onclick="playPronunciation('{{Word}}', 0)" title="美式发音">🇺🇸</button>
+                            </div>
                             <div class="hint">请回想这个单词的意思</div>
                         </div>
+                        
+                        <script>
+                        function playPronunciation(word, type) {
+                            if (!word) return;
+                            
+                            // type: 0 = 美式发音, 1 = 英式发音
+                            const url = `http://dict.youdao.com/dictvoice?type=${type}&audio=${encodeURIComponent(word)}`;
+                            
+                            try {
+                                // 创建音频对象
+                                const audio = new Audio(url);
+                                
+                                // 添加加载状态提示
+                                const button = event.target;
+                                const originalText = button.innerHTML;
+                                button.innerHTML = '🔄';
+                                button.disabled = true;
+                                
+                                // 播放音频
+                                const playPromise = audio.play();
+                                
+                                if (playPromise !== undefined) {
+                                    playPromise.then(() => {
+                                        // 播放成功
+                                        button.innerHTML = originalText;
+                                        button.disabled = false;
+                                    }).catch(error => {
+                                        // 播放失败
+                                        console.error('发音播放失败:', error);
+                                        button.innerHTML = '❌';
+                                        button.disabled = false;
+                                        setTimeout(() => {
+                                            button.innerHTML = originalText;
+                                        }, 1000);
+                                    });
+                                }
+                                
+                                // 播放结束后重置按钮
+                                audio.onended = function() {
+                                    button.innerHTML = originalText;
+                                    button.disabled = false;
+                                };
+                                
+                                // 加载失败处理
+                                audio.onerror = function() {
+                                    console.error('音频加载失败');
+                                    button.innerHTML = '❌';
+                                    button.disabled = false;
+                                    setTimeout(() => {
+                                        button.innerHTML = originalText;
+                                    }, 1000);
+                                };
+                                
+                            } catch (error) {
+                                console.error('发音功能错误:', error);
+                                const button = event.target;
+                                button.innerHTML = '❌';
+                                button.disabled = false;
+                                setTimeout(() => {
+                                    button.innerHTML = button.title.includes('英式') ? '🇬🇧' : '🇺🇸';
+                                }, 1000);
+                            }
+                        }
+                        </script>
                     """,
                     "afmt": """
                         <div class="card-back">
                             <h2 class="word">{{Word}}</h2>
                             {{Content}}
                         </div>
+                        
+                        <script>
+                        function playPronunciation(word, type) {
+                            if (!word) return;
+                            
+                            // type: 0 = 美式发音, 1 = 英式发音
+                            const url = `http://dict.youdao.com/dictvoice?type=${type}&audio=${encodeURIComponent(word)}`;
+                            
+                            try {
+                                // 创建音频对象
+                                const audio = new Audio(url);
+                                
+                                // 添加加载状态提示
+                                const button = event.target;
+                                const originalText = button.innerHTML;
+                                button.innerHTML = '🔄';
+                                button.disabled = true;
+                                
+                                // 音频加载完成事件
+                                audio.oncanplaythrough = function() {
+                                    button.innerHTML = originalText;
+                                    button.disabled = false;
+                                };
+                                
+                                // 播放音频
+                                const playPromise = audio.play();
+                                
+                                if (playPromise !== undefined) {
+                                    playPromise.then(() => {
+                                        // 播放成功
+                                        button.innerHTML = originalText;
+                                        button.disabled = false;
+                                    }).catch(error => {
+                                        // 播放失败
+                                        console.error('发音播放失败:', error);
+                                        button.innerHTML = '❌';
+                                        button.disabled = false;
+                                        setTimeout(() => {
+                                            button.innerHTML = originalText;
+                                        }, 1000);
+                                    });
+                                }
+                                
+                                // 播放结束后重置按钮
+                                audio.onended = function() {
+                                    button.innerHTML = originalText;
+                                    button.disabled = false;
+                                };
+                                
+                                // 加载失败处理
+                                audio.onerror = function() {
+                                    console.error('音频加载失败');
+                                    button.innerHTML = '❌';
+                                    button.disabled = false;
+                                    setTimeout(() => {
+                                        button.innerHTML = originalText;
+                                    }, 1000);
+                                };
+                                
+                            } catch (error) {
+                                console.error('发音功能错误:', error);
+                                const button = event.target;
+                                button.innerHTML = '❌';
+                                button.disabled = false;
+                                setTimeout(() => {
+                                    button.innerHTML = button.title.includes('英式') ? '🇬🇧' : '🇺🇸';
+                                }, 1000);
+                            }
+                        }
+                        </script>
                     """,
                 },
             ],
@@ -182,6 +320,56 @@ class AnkiExporter:
     color: #666;
     font-size: 16px;
     margin-top: 30px;
+}
+
+/* 发音按钮容器 - 正面卡片 */
+.pronunciation-buttons {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* 发音按钮样式 */
+.pronunciation-btn {
+    background: none;
+    border: 2px solid #ddd;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    min-width: 50px;
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.pronunciation-btn:hover {
+    background: linear-gradient(145deg, #e9ecef, #dee2e6);
+    border-color: #3498db;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
+}
+
+.pronunciation-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.pronunciation-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 音标行中的发音按钮 */
+.phonetic .pronunciation-btn {
+    font-size: 0.9em;
+    padding: 4px 8px;
+    margin-left: 10px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
 }
 
 /* 背面卡片内容 */
@@ -443,6 +631,22 @@ class AnkiExporter:
     .card-front {
         padding: 30px 15px;
     }
+    
+    /* 移动端发音按钮 */
+    .pronunciation-buttons {
+        gap: 10px;
+    }
+    
+    .pronunciation-btn {
+        font-size: 1.1em;
+        padding: 6px 10px;
+        min-width: 45px;
+    }
+    
+    .phonetic .pronunciation-btn {
+        font-size: 0.8em;
+        padding: 3px 6px;
+    }
 }
 """
 
@@ -468,7 +672,7 @@ class AnkiExporter:
 
         sections = []
 
-        # 1. 音标和词性行（保留音标，删除发音功能）
+        # 1. 音标和词性行（添加发音功能）
         phonetic_line = []
 
         # 处理音标
@@ -483,14 +687,24 @@ class AnkiExporter:
                     phonetic_parts.append(f"美 {phonetic['US']}")
                 if phonetic_parts:
                     phonetic_text = " ".join(phonetic_parts)
+                    # 添加发音按钮
+                    pronunciation_buttons = f'''
+                        <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 1)" title="英式发音">🇬🇧</button>
+                        <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 0)" title="美式发音">🇺🇸</button>
+                    '''
                     phonetic_line.append(
-                        f'<span class="phonetic">{escape(phonetic_text)}</span>'
+                        f'<span class="phonetic">{escape(phonetic_text)} {pronunciation_buttons}</span>'
                     )
             elif isinstance(phonetic, str) and phonetic.strip():
                 clean_phonetic = phonetic.strip("{}").strip()
                 if clean_phonetic:
+                    # 添加发音按钮
+                    pronunciation_buttons = f'''
+                        <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 1)" title="英式发音">🇬🇧</button>
+                        <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 0)" title="美式发音">🇺🇸</button>
+                    '''
                     phonetic_line.append(
-                        f'<span class="phonetic">{escape(clean_phonetic)}</span>'
+                        f'<span class="phonetic">{escape(clean_phonetic)} {pronunciation_buttons}</span>'
                     )
 
         # 处理词性
@@ -522,6 +736,14 @@ class AnkiExporter:
                 phonetic_line.append(
                     f'<span class="pronunciation">{escape(pronunciation_text)}</span>'
                 )
+
+        # 如果没有音标信息但有单词，添加独立的发音按钮
+        if not phonetic_line and word:
+            pronunciation_buttons = f'''
+                <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 1)" title="英式发音">🇬🇧</button>
+                <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 0)" title="美式发音">🇺🇸</button>
+            '''
+            phonetic_line.append(f'<span class="pronunciation-only">{pronunciation_buttons}</span>')
 
         if phonetic_line:
             sections.append(
@@ -1262,23 +1484,6 @@ class AnkiExporter:
     font-size: 1.2em;
 }
 
-.pronunciation-btn {
-    background: none;
-    border: none;
-    font-size: 1.0em;
-    cursor: pointer;
-    padding: 3px 5px;
-    border-radius: 3px;
-    transition: background-color 0.2s;
-}
-
-.pronunciation-btn:hover {
-    background-color: #e0e0e0;
-}
-
-.pronunciation-btn:active {
-    background-color: #d0d0d0;
-}
 
 .pronunciation-info {
     color: #9b59b6;
