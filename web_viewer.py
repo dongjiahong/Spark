@@ -151,59 +151,125 @@ class WebDataManager:
 task_status = {}
 
 class TaskManager:
-    """异步任务管理器"""
+    """异步任务管理器 - 使用数据库持久化"""
     
-    def __init__(self):
-        self.tasks = {}
+    def __init__(self, db_path: str = "toefl_words.db"):
+        self.db_path = db_path
         self.lock = threading.Lock()
+        self._init_tasks_table()
+        # 启动时清理7天前的旧任务
+        self.cleanup_old_tasks(7)
+    
+    def _init_tasks_table(self):
+        """初始化任务表"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS tasks (
+                    task_id TEXT PRIMARY KEY,
+                    status TEXT NOT NULL,
+                    progress INTEGER DEFAULT 0,
+                    message TEXT,
+                    result TEXT,
+                    error TEXT,
+                    created_at REAL NOT NULL,
+                    completed_at REAL,
+                    failed_at REAL
+                )
+            ''')
+            conn.commit()
+        finally:
+            conn.close()
     
     def create_task(self, task_id: str, task_info: Dict[str, Any]):
         """创建新任务"""
-        with self.lock:
-            self.tasks[task_id] = {
-                'id': task_id,
-                'status': 'running',
-                'progress': 0,
-                'message': '任务开始',
-                'result': None,
-                'error': None,
-                'created_at': time.time(),
-                **task_info
-            }
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                INSERT INTO tasks (task_id, status, progress, message, created_at)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                task_id,
+                'running',
+                0,
+                '任务开始',
+                time.time()
+            ))
+            conn.commit()
+        finally:
+            conn.close()
     
     def update_task(self, task_id: str, **kwargs):
         """更新任务状态"""
-        with self.lock:
-            if task_id in self.tasks:
-                self.tasks[task_id].update(kwargs)
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            # 构建更新SQL
+            set_clauses = []
+            values = []
+            
+            for key, value in kwargs.items():
+                if key in ['status', 'progress', 'message', 'result', 'error', 'completed_at', 'failed_at']:
+                    set_clauses.append(f"{key} = ?")
+                    values.append(value)
+            
+            if set_clauses:
+                values.append(task_id)
+                sql = f"UPDATE tasks SET {', '.join(set_clauses)} WHERE task_id = ?"
+                cursor.execute(sql, values)
+                conn.commit()
+        finally:
+            conn.close()
     
     def get_task(self, task_id: str) -> Dict[str, Any]:
         """获取任务状态"""
-        with self.lock:
-            return self.tasks.get(task_id, {})
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        try:
+            cursor.execute('SELECT * FROM tasks WHERE task_id = ?', (task_id,))
+            row = cursor.fetchone()
+            if row:
+                return dict(row)
+            return None
+        finally:
+            conn.close()
     
     def complete_task(self, task_id: str, result: Dict[str, Any]):
         """完成任务"""
-        with self.lock:
-            if task_id in self.tasks:
-                self.tasks[task_id].update({
-                    'status': 'completed',
-                    'progress': 100,
-                    'message': '任务完成',
-                    'result': result,
-                    'completed_at': time.time()
-                })
+        self.update_task(task_id, 
+            status='completed',
+            progress=100,
+            message='任务完成',
+            result=json.dumps(result) if isinstance(result, dict) else str(result),
+            completed_at=time.time()
+        )
     
     def fail_task(self, task_id: str, error: str):
         """任务失败"""
-        with self.lock:
-            if task_id in self.tasks:
-                self.tasks[task_id].update({
-                    'status': 'failed',
-                    'message': f'任务失败: {error}',
-                    'error': error,
-                    'failed_at': time.time()
-                })
+        self.update_task(task_id,
+            status='failed',
+            message=f'任务失败: {error}',
+            error=error,
+            failed_at=time.time()
+        )
+    
+    def cleanup_old_tasks(self, days_old: int = 7):
+        """清理旧任务记录"""
+        cutoff_time = time.time() - (days_old * 24 * 60 * 60)
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        try:
+            cursor.execute('''
+                DELETE FROM tasks 
+                WHERE (completed_at IS NOT NULL AND completed_at < ?) 
+                   OR (failed_at IS NOT NULL AND failed_at < ?)
+            ''', (cutoff_time, cutoff_time))
+            conn.commit()
+        finally:
+            conn.close()
 
 # 初始化管理器
 data_manager = WebDataManager()
@@ -343,12 +409,20 @@ def get_task_status(task_id: str):
         if not task:
             return jsonify({'error': '任务不存在'}), 404
         
+        # 解析result JSON字符串
+        result = task.get('result')
+        if result and isinstance(result, str):
+            try:
+                result = json.loads(result)
+            except:
+                pass  # 保持原始字符串
+        
         return jsonify({
             'task_id': task_id,
             'status': task.get('status', 'unknown'),
             'progress': task.get('progress', 0),
             'message': task.get('message', ''),
-            'result': task.get('result'),
+            'result': result,
             'error': task.get('error'),
             'created_at': task.get('created_at'),
             'completed_at': task.get('completed_at'),

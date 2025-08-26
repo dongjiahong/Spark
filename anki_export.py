@@ -783,7 +783,11 @@ class AnkiExporter:
                 phonetic_parts.append(f"<button class='phonetic-btn' onclick='playPronunciation(\"{escape(word)}\", 0)' title='美式发音'>🇺🇸</button> {phonetic['US']}")
             return " ".join(phonetic_parts)
         elif isinstance(phonetic, str):
-            return phonetic.strip("{}").strip()
+            clean_phonetic = phonetic.strip("{}").strip()
+            # 替换字符串中的"英"和"美"为图标
+            clean_phonetic = clean_phonetic.replace("英 ", f"<button class='phonetic-btn' onclick='playPronunciation(\"{escape(word)}\", 1)' title='英式发音'>🇬🇧</button> ")
+            clean_phonetic = clean_phonetic.replace("美 ", f"<button class='phonetic-btn' onclick='playPronunciation(\"{escape(word)}\", 0)' title='美式发音'>🇺🇸</button> ")
+            return clean_phonetic
         
         return ""
 
