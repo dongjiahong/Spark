@@ -409,8 +409,8 @@ class TOEFLViewer {
      * 轮询任务状态
      */
     async pollTaskStatus(taskId, progressFill, progressStatus) {
-        const pollInterval = 2000; // 2秒轮询一次
-        const maxPolls = 150; // 最多轮询5分钟 (150 * 2秒)
+        const pollInterval = 10000; // 10秒轮询一次
+        const maxPolls = 60; // 最多轮询10分钟 (60 * 10秒)
         let pollCount = 0;
 
         return new Promise((resolve, reject) => {

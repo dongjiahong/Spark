@@ -375,6 +375,25 @@ class AnkiExporter:
     border-radius: 4px;
 }
 
+/* 音标中的小发音按钮 */
+.phonetic-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0 3px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: transform 0.1s ease;
+}
+
+.phonetic-btn:hover {
+    transform: scale(1.1);
+}
+
+.phonetic-btn:active {
+    transform: scale(0.95);
+}
+
 /* 背面卡片内容 */
 .card-back {
     padding: 15px;
@@ -411,10 +430,10 @@ class AnkiExporter:
 }
 
 .word-phonetic {
-    font-size: 0.95rem;
-    color: #e74c3c;
+    font-size: 0.8rem;
+    color: #888;
     font-style: italic;
-    font-weight: 500;
+    font-weight: normal;
     font-family: 'Lucida Sans Unicode', sans-serif;
 }
 
@@ -723,7 +742,7 @@ class AnkiExporter:
             return "<div class='error'>学习内容生成失败</div>"
 
         # 处理数据提取
-        phonetic = self._format_phonetic(content.get("phonetic"))
+        phonetic = self._format_phonetic(content.get("phonetic"), word)
         translations = content.get("translations", [])
         part_of_speech = content.get("part_of_speech", [])
         examples = content.get("examples", [])
@@ -737,7 +756,7 @@ class AnkiExporter:
             <div class="word-header">
                 <span class="word-text">{escape(word)}</span>
             </div>
-            {f'<div class="phonetic-line"><span class="word-phonetic">{escape(phonetic)}</span> <button class="pronunciation-btn" onclick="playPronunciation(\'{escape(word)}\', 1)" title="英式发音">🇬🇧</button><button class="pronunciation-btn" onclick="playPronunciation(\'{escape(word)}\', 0)" title="美式发音">🇺🇸</button></div>' if phonetic else ''}
+            {f'<div class="phonetic-line"><span class="word-phonetic">{phonetic}</span></div>' if phonetic else ''}
             {f'<div class="word-pronunciation">{escape(pronunciation)}</div>' if pronunciation else ''}
             <div class="word-info">
                 {f'<div class="word-pos">{escape(self._format_part_of_speech(part_of_speech))}</div>' if part_of_speech else ''}
@@ -751,7 +770,7 @@ class AnkiExporter:
         
         return html.strip()
 
-    def _format_phonetic(self, phonetic) -> str:
+    def _format_phonetic(self, phonetic, word: str = "") -> str:
         """格式化音标"""
         if not phonetic:
             return ""
@@ -759,9 +778,9 @@ class AnkiExporter:
         if isinstance(phonetic, dict):
             phonetic_parts = []
             if phonetic.get("UK"):
-                phonetic_parts.append(f"英 {phonetic['UK']}")
+                phonetic_parts.append(f"<button class='phonetic-btn' onclick='playPronunciation(\"{escape(word)}\", 1)' title='英式发音'>🇬🇧</button> {phonetic['UK']}")
             if phonetic.get("US"):
-                phonetic_parts.append(f"美 {phonetic['US']}")
+                phonetic_parts.append(f"<button class='phonetic-btn' onclick='playPronunciation(\"{escape(word)}\", 0)' title='美式发音'>🇺🇸</button> {phonetic['US']}")
             return " ".join(phonetic_parts)
         elif isinstance(phonetic, str):
             return phonetic.strip("{}").strip()

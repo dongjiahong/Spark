@@ -251,10 +251,10 @@ body {
 }
 
 .word-phonetic {
-    font-size: 0.9rem;
-    color: #e74c3c;
+    font-size: 0.75rem;
+    color: #999;
     font-style: italic;
-    font-weight: 500;
+    font-weight: normal;
     font-family: 'Lucida Sans Unicode', sans-serif;
 }
 
@@ -284,6 +284,25 @@ body {
 
 .pronunciation-btn:active {
     transform: translateY(0);
+}
+
+/* 音标中的小发音按钮 */
+.phonetic-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0 3px;
+    cursor: pointer;
+    font-size: 0.7em;
+    transition: transform 0.1s ease;
+}
+
+.phonetic-btn:hover {
+    transform: scale(1.1);
+}
+
+.phonetic-btn:active {
+    transform: scale(0.95);
 }
 
 .word-pronunciation {
