@@ -33,7 +33,7 @@ MODEL=gpt-3.5-turbo
 ```bash
 python web_viewer.py
 ```
-访问 http://localhost:8080，支持：
+访问 http://localhost:8080 支持：
 - 浏览单词和短文
 - 一键"再来一组"生成新内容
 - 实时进度显示

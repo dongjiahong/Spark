@@ -11,10 +11,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 系统采用模块化架构，职责分离清晰：
 
 - **main.py**: 主入口文件，提供CLI界面和交互模式
+- **web_viewer.py**: Flask Web服务器，提供现代化的Web界面浏览单词和短文
 - **ai_service.py**: AI模型集成（兼容OpenAI API），生成单词信息和短文
 - **business_logic.py**: 核心业务逻辑，处理单词选择、学习进度和数据库管理
 - **anki_export.py**: 生成Anki包文件(.apkg)，内嵌CSS样式和发音JavaScript功能
 - **import_words.py**: 初始单词导入功能
+- **templates/**: Web界面HTML模板
+- **static/**: Web界面CSS和JavaScript资源
 
 ### 数据库结构
 
@@ -45,7 +48,16 @@ cp .env.example .env
 
 ### 运行应用
 
-#### 交互模式（推荐）
+#### Web界面模式（推荐）
+```bash
+python web_viewer.py
+```
+访问 http://localhost:8080 使用现代化Web界面：
+- 浏览单词和短文内容
+- 一键"再来一组"生成新学习内容
+- 实时进度显示和统计信息
+
+#### CLI交互模式
 ```bash
 python main.py
 ```
@@ -60,6 +72,9 @@ python main.py --mode export --output anki_export
 
 # 显示统计信息
 python main.py --mode stats
+
+# 直接导出Anki包（独立命令）
+python anki_export.py
 ```
 
 #### 单独模块测试
@@ -70,8 +85,8 @@ python ai_service.py
 # 运行业务逻辑
 python business_logic.py
 
-# 导出Anki卡片
-python anki_export.py
+# 导入初始单词到数据库
+python import_words.py
 ```
 
 ## 核心功能
@@ -97,8 +112,9 @@ python anki_export.py
 
 - **toefl_words.txt**: 源单词列表（每行一个单词）
 - **toefl_words.db**: SQLite数据库（自动创建）
-- **.env**: 环境配置文件（必需）
+- **.env**: 环境配置文件（必需，从.env.example复制）
 - **anki_export/**: 生成的.apkg文件目录
+- **requirements.txt**: Python依赖列表
 
 ## 数据流程
 
@@ -108,9 +124,29 @@ python anki_export.py
 4. 内容以JSON格式存储在数据库中
 5. Anki导出器创建内嵌样式和发音功能的.apkg文件
 
+## 开发注意事项
+
+### 依赖库
+系统主要依赖：
+- `python-dotenv`: 环境变量管理
+- `requests`: HTTP请求处理
+- `genanki`: Anki包生成
+- `Flask`: Web界面服务
+
+### API配置
+- 所有AI调用需要配置.env文件中的API凭据
+- 支持OpenAI兼容的API端点
+- 系统会自动重试失败的API调用
+
+### 数据库操作
+- 使用SQLite作为本地数据库
+- 所有数据库操作使用row_factory以支持字典式访问
+- 数据库连接在每个操作后自动关闭
+
 ## 重要说明
 
 - 系统需要网络连接用于AI API调用和发音功能
 - 所有生成的内容都会缓存在数据库中，避免重复API调用
 - 发音系统使用有道词典API端点
 - .apkg文件是自包含的，内嵌CSS/JS，可直接导入Anki使用
+- Web服务器默认运行在 localhost:8080

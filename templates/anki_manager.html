@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anki管理 - TOEFL单词学习系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>Anki卡片管理</h1>
+                    <div id="anki-stats" class="stats">
+                        <span>加载统计中...</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button id="back-to-main-btn" class="back-btn" onclick="window.close()">
+                        <span>🔙</span>
+                        <span>返回主页</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- 功能选项卡 -->
+            <nav class="anki-tabs">
+                <button id="preview-tab" class="tab-button active">📖 预览卡片</button>
+                <button id="generate-tab" class="tab-button">⚡ 生成卡片</button>
+                <button id="export-tab" class="tab-button">📦 导出下载</button>
+            </nav>
+
+            <!-- 预览卡片页面 -->
+            <section id="preview-section" class="tab-content active">
+                <div class="section-header">
+                    <h2>卡片预览</h2>
+                    <div class="preview-controls">
+                        <select id="preview-type" class="control-select">
+                            <option value="word">单词卡片</option>
+                            <option value="essay">短文卡片</option>
+                        </select>
+                        <button id="refresh-preview-btn" class="control-btn">🔄 刷新</button>
+                    </div>
+                </div>
+                
+                <div id="preview-loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <span>加载预览中...</span>
+                </div>
+
+                <div id="preview-container" class="preview-container">
+                    <!-- 预览内容将在这里动态生成 -->
+                </div>
+
+                <!-- 预览分页 -->
+                <nav id="preview-pagination" class="pagination" style="display: none;">
+                    <div class="pagination-info">
+                        <span id="preview-page-info">第 1 页，共 1 页</span>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="preview-prev-btn" class="page-btn">上一页</button>
+                        <button id="preview-next-btn" class="page-btn">下一页</button>
+                    </div>
+                </nav>
+            </section>
+
+            <!-- 生成卡片页面 -->
+            <section id="generate-section" class="tab-content">
+                <div class="section-header">
+                    <h2>生成Anki卡片</h2>
+                </div>
+
+                <div class="generate-options">
+                    <div class="option-group">
+                        <h3>📝 单词卡片生成</h3>
+                        <div class="option-controls">
+                            <label>
+                                选择单词范围：
+                                <select id="word-range" class="control-select">
+                                    <option value="all">所有有学习内容的单词</option>
+                                    <option value="learned">已学习的单词</option>
+                                    <option value="recent">最近学习的单词</option>
+                                </select>
+                            </label>
+                            <button id="generate-words-btn" class="generate-btn">
+                                <span>⚡</span>
+                                <span>生成单词卡片</span>
+                            </button>
+                        </div>
+                        <div id="word-generate-progress" class="progress-container" style="display: none;">
+                            <div class="progress-text">单词卡片生成进度</div>
+                            <div class="progress-bar">
+                                <div id="word-progress-fill" class="progress-fill"></div>
+                            </div>
+                            <div id="word-progress-status" class="progress-status">准备中...</div>
+                        </div>
+                    </div>
+
+                    <div class="option-group">
+                        <h3>📚 短文卡片生成</h3>
+                        <div class="option-controls">
+                            <label>
+                                选择短文范围：
+                                <select id="essay-range" class="control-select">
+                                    <option value="all">所有短文</option>
+                                    <option value="recent">最近的短文</option>
+                                    <option value="top10">前10篇短文</option>
+                                </select>
+                            </label>
+                            <button id="generate-essays-btn" class="generate-btn">
+                                <span>⚡</span>
+                                <span>生成短文卡片</span>
+                            </button>
+                        </div>
+                        <div id="essay-generate-progress" class="progress-container" style="display: none;">
+                            <div class="progress-text">短文卡片生成进度</div>
+                            <div class="progress-bar">
+                                <div id="essay-progress-fill" class="progress-fill"></div>
+                            </div>
+                            <div id="essay-progress-status" class="progress-status">准备中...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 导出下载页面 -->
+            <section id="export-section" class="tab-content">
+                <div class="section-header">
+                    <h2>导出Anki包</h2>
+                </div>
+
+                <div class="export-options">
+                    <div class="export-card">
+                        <h3>📝 单词卡片APKG</h3>
+                        <p>包含所有单词的识别卡片，支持发音功能</p>
+                        <div class="export-controls">
+                            <button id="export-words-btn" class="export-btn">
+                                <span>💾</span>
+                                <span>导出单词APKG</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="export-card">
+                        <h3>📚 短文卡片APKG</h3>
+                        <p>包含短文翻译和反向练习卡片</p>
+                        <div class="export-controls">
+                            <button id="export-essays-btn" class="export-btn">
+                                <span>💾</span>
+                                <span>导出短文APKG</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="export-card featured">
+                        <h3>🎁 完整学习包</h3>
+                        <p>包含所有单词和短文卡片的完整包</p>
+                        <div class="export-controls">
+                            <button id="export-all-btn" class="export-btn primary">
+                                <span>🚀</span>
+                                <span>导出完整学习包</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 导出进度 -->
+                <div id="export-progress" class="progress-container" style="display: none;">
+                    <div class="progress-text">导出进度</div>
+                    <div class="progress-bar">
+                        <div id="export-progress-fill" class="progress-fill"></div>
+                    </div>
+                    <div id="export-progress-status" class="progress-status">准备中...</div>
+                </div>
+
+                <!-- 下载链接区域 -->
+                <div id="download-area" class="download-area" style="display: none;">
+                    <h3>📥 下载文件</h3>
+                    <div id="download-links" class="download-links">
+                        <!-- 下载链接将在这里动态生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 错误提示 -->
+            <div id="error" class="error" style="display: none;">
+                <h3>操作失败</h3>
+                <p id="error-message">请检查网络连接或稍后重试</p>
+                <button id="retry-btn" class="retry-btn">重试</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='anki_manager.js') }}"></script>
+</body>
+</html>
