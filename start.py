@@ -38,7 +38,7 @@ def check_gunicorn():
 def start_development():
     """启动开发模式"""
     print("🚀 启动开发模式...")
-    print("访问地址: http://localhost:8080")
+    print("访问地址: http://localhost:1880")
     print("按 Ctrl+C 停止服务器")
     print("-" * 50)
     
@@ -47,10 +47,10 @@ def start_development():
     os.environ['FLASK_DEBUG'] = '1'
     
     from web_viewer import app
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=1880)
 
 
-def start_production(workers=4, port=8080, host='0.0.0.0'):
+def start_production(workers=4, port=1880, host='0.0.0.0'):
     """启动生产模式"""
     if not check_gunicorn():
         print("✗ Gunicorn未安装，自动安装中...")
@@ -147,8 +147,8 @@ def main():
                        help='使用开发模式启动 (Flask开发服务器)')
     parser.add_argument('--workers', type=int, default=4, 
                        help='生产模式工作进程数 (默认: 4)')
-    parser.add_argument('--port', type=int, default=8080, 
-                       help='服务器端口 (默认: 8080)')
+    parser.add_argument('--port', type=int, default=1880, 
+                       help='服务器端口 (默认: 1880)')
     parser.add_argument('--host', default='0.0.0.0', 
                        help='服务器主机 (默认: 0.0.0.0)')
     parser.add_argument('--status', action='store_true', 

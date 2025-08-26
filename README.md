@@ -70,24 +70,12 @@ python start.py --status
 
 ## Web界面功能
 
-访问 http://localhost:8080 体验：
+访问 http://localhost:1880 体验：
 - **浏览模式**：查看已生成的单词和短文内容
 - **异步生成**：点击"再来一组"后台生成，前端显示实时进度
 - **键盘导航**：左右箭头翻页，空格键显示/隐藏翻译
 - **发音功能**：点击🇺🇸🇬🇧图标播放单词发音
 - **Anki管理**：查看和导出Anki卡片预览
-
-## 命令行模式
-```bash
-# 交互模式
-python main.py
-
-# 生成学习会话
-python main.py --mode learn --words 10 --type story
-
-# 导出Anki包
-python anki_export.py
-```
 
 ## 技术架构
 
@@ -131,7 +119,7 @@ spark/
 ## Anki使用
 
 ### 方式一：Web界面导出（推荐）
-1. 访问 http://localhost:8080
+1. 访问 http://localhost:1880
 2. 点击"Anki管理"按钮
 3. 预览卡片内容，选择导出类型
 4. 下载生成的 `.apkg` 文件
