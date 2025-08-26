@@ -9,6 +9,9 @@ from flask import Flask, render_template, jsonify, request
 import sqlite3
 import json
 import math
+import threading
+import uuid
+import time
 from typing import Dict, Any, List, Optional
 
 app = Flask(__name__)
@@ -144,8 +147,67 @@ class WebDataManager:
         finally:
             conn.close()
 
-# 初始化数据管理器
+# 任务状态管理
+task_status = {}
+
+class TaskManager:
+    """异步任务管理器"""
+    
+    def __init__(self):
+        self.tasks = {}
+        self.lock = threading.Lock()
+    
+    def create_task(self, task_id: str, task_info: Dict[str, Any]):
+        """创建新任务"""
+        with self.lock:
+            self.tasks[task_id] = {
+                'id': task_id,
+                'status': 'running',
+                'progress': 0,
+                'message': '任务开始',
+                'result': None,
+                'error': None,
+                'created_at': time.time(),
+                **task_info
+            }
+    
+    def update_task(self, task_id: str, **kwargs):
+        """更新任务状态"""
+        with self.lock:
+            if task_id in self.tasks:
+                self.tasks[task_id].update(kwargs)
+    
+    def get_task(self, task_id: str) -> Dict[str, Any]:
+        """获取任务状态"""
+        with self.lock:
+            return self.tasks.get(task_id, {})
+    
+    def complete_task(self, task_id: str, result: Dict[str, Any]):
+        """完成任务"""
+        with self.lock:
+            if task_id in self.tasks:
+                self.tasks[task_id].update({
+                    'status': 'completed',
+                    'progress': 100,
+                    'message': '任务完成',
+                    'result': result,
+                    'completed_at': time.time()
+                })
+    
+    def fail_task(self, task_id: str, error: str):
+        """任务失败"""
+        with self.lock:
+            if task_id in self.tasks:
+                self.tasks[task_id].update({
+                    'status': 'failed',
+                    'message': f'任务失败: {error}',
+                    'error': error,
+                    'failed_at': time.time()
+                })
+
+# 初始化管理器
 data_manager = WebDataManager()
+task_manager = TaskManager()
 
 # 动态导入业务逻辑模块
 try:
@@ -203,9 +265,39 @@ def get_stats():
     finally:
         conn.close()
 
+def async_generate_essay(task_id: str, word_count: int, essay_type: str):
+    """异步生成短文的后台任务"""
+    try:
+        # 更新任务状态
+        task_manager.update_task(task_id, progress=25, message='选择单词中...')
+        
+        # 模拟进度更新
+        time.sleep(0.5)
+        task_manager.update_task(task_id, progress=50, message='生成学习内容...')
+        
+        # 执行实际的生成任务
+        result = word_manager.generate_learning_session(
+            word_count=word_count, 
+            essay_type=essay_type
+        )
+        
+        task_manager.update_task(task_id, progress=75, message='创建短文...')
+        time.sleep(0.5)
+        
+        # 完成任务
+        task_manager.complete_task(task_id, {
+            'success': True,
+            'message': f'成功生成包含{word_count}个单词的{essay_type}',
+            'essay_id': result.get('essay_id'),
+            'words_processed': result.get('words_processed', [])
+        })
+        
+    except Exception as e:
+        task_manager.fail_task(task_id, str(e))
+
 @app.route('/api/generate', methods=['POST'])
 def generate_new_essay():
-    """生成新短文API"""
+    """生成新短文API - 异步模式"""
     if not word_manager:
         return jsonify({'error': '生成功能不可用，请检查business_logic模块'}), 500
     
@@ -215,32 +307,56 @@ def generate_new_essay():
         word_count = data.get('word_count', 10)  # 默认10个单词
         essay_type = data.get('essay_type', 'story')  # 默认故事类型
         
-        # 生成新的学习会话
-        result = word_manager.generate_learning_session(
-            word_count=word_count, 
-            essay_type=essay_type
+        # 生成任务ID
+        task_id = str(uuid.uuid4())
+        
+        # 创建任务
+        task_manager.create_task(task_id, {
+            'type': 'generate_essay',
+            'word_count': word_count,
+            'essay_type': essay_type
+        })
+        
+        # 启动后台线程
+        thread = threading.Thread(
+            target=async_generate_essay,
+            args=(task_id, word_count, essay_type)
         )
+        thread.daemon = True
+        thread.start()
         
         return jsonify({
             'success': True,
-            'message': f'成功生成包含{word_count}个单词的{essay_type}',
-            'essay_id': result.get('essay_id'),
-            'words_processed': result.get('words_processed', [])
+            'task_id': task_id,
+            'message': '任务已启动，正在后台生成...'
         })
     
     except Exception as e:
-        return jsonify({'error': f'生成失败: {str(e)}'}), 500
+        return jsonify({'error': f'启动任务失败: {str(e)}'}), 500
 
-@app.route('/api/generate/progress')
-def get_generation_progress():
-    """获取生成进度API（简化版本，实际可能需要更复杂的状态管理）"""
-    # 这里返回模拟的进度信息，实际项目中可能需要Redis等来管理状态
-    return jsonify({
-        'progress': 100,  # 百分比
-        'status': '完成',
-        'current_step': '短文生成完成',
-        'total_steps': 4
-    })
+@app.route('/api/task/<task_id>')
+def get_task_status(task_id: str):
+    """获取任务状态API"""
+    try:
+        task = task_manager.get_task(task_id)
+        
+        if not task:
+            return jsonify({'error': '任务不存在'}), 404
+        
+        return jsonify({
+            'task_id': task_id,
+            'status': task.get('status', 'unknown'),
+            'progress': task.get('progress', 0),
+            'message': task.get('message', ''),
+            'result': task.get('result'),
+            'error': task.get('error'),
+            'created_at': task.get('created_at'),
+            'completed_at': task.get('completed_at'),
+            'failed_at': task.get('failed_at')
+        })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/anki')
 def anki_manager():

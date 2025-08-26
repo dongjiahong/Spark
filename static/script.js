@@ -343,7 +343,7 @@ class TOEFLViewer {
     }
 
     /**
-     * 生成新短文
+     * 生成新短文 - 异步模式
      */
     async generateNewEssay() {
         const button = document.getElementById('generate-btn');
@@ -359,80 +359,37 @@ class TOEFLViewer {
         text.textContent = '生成中...';
         progressContainer.style.display = 'flex';
         progressFill.style.width = '0%';
-        progressStatus.textContent = '开始生成...';
+        progressStatus.textContent = '启动任务...';
 
         try {
-            // 模拟进度更新
-            const updateProgress = (progress, status) => {
-                progressFill.style.width = progress + '%';
-                progressStatus.textContent = status;
-            };
+            // 启动生成任务
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    word_count: 10,
+                    essay_type: 'story'
+                })
+            });
 
-            updateProgress(25, '选择单词中...');
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            updateProgress(50, '生成学习内容...');
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            updateProgress(75, '创建短文...');
-
-            // 创建带超时的fetch请求
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 300000); // 5分钟超时
-
-            let result;
-            try {
-                // 发送生成请求
-                const response = await fetch('/api/generate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        word_count: 10,
-                        essay_type: 'story'
-                    }),
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                // 检查响应状态和内容类型
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`服务器错误 ${response.status}: ${errorText}`);
-                }
-
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    const errorText = await response.text();
-                    throw new Error(`服务器返回非JSON响应，可能是请求超时或服务器错误`);
-                }
-
-                result = await response.json();
-            } catch (error) {
-                clearTimeout(timeoutId);
-                if (error.name === 'AbortError') {
-                    throw new Error('请求超时（5分钟），请检查网络连接或稍后再试');
-                }
-                throw error;
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`启动任务失败: ${response.status} ${errorText}`);
             }
 
-            updateProgress(100, '生成完成！');
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            if (result.success) {
-                // 重新加载统计信息
-                this.loadStats();
-                
-                // 跳到第一页查看新生成的内容
-                this.loadPage(1);
-                
-                // 显示成功消息
-                this.showSuccessMessage(result.message);
-            } else {
-                throw new Error(result.error || '生成失败');
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.error || '启动任务失败');
             }
+
+            // 获取任务ID，开始轮询
+            const taskId = result.task_id;
+            progressStatus.textContent = '任务已启动，正在处理...';
+            
+            await this.pollTaskStatus(taskId, progressFill, progressStatus);
 
         } catch (error) {
             console.error('生成新短文失败:', error);
@@ -446,6 +403,72 @@ class TOEFLViewer {
                 progressContainer.style.display = 'none';
             }, 1000);
         }
+    }
+
+    /**
+     * 轮询任务状态
+     */
+    async pollTaskStatus(taskId, progressFill, progressStatus) {
+        const pollInterval = 2000; // 2秒轮询一次
+        const maxPolls = 150; // 最多轮询5分钟 (150 * 2秒)
+        let pollCount = 0;
+
+        return new Promise((resolve, reject) => {
+            const poll = async () => {
+                pollCount++;
+                
+                try {
+                    const response = await fetch(`/api/task/${taskId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`查询任务状态失败: ${response.status}`);
+                    }
+                    
+                    const taskStatus = await response.json();
+                    
+                    if (taskStatus.error) {
+                        throw new Error(taskStatus.error);
+                    }
+
+                    // 更新进度
+                    progressFill.style.width = taskStatus.progress + '%';
+                    progressStatus.textContent = taskStatus.message || '处理中...';
+
+                    if (taskStatus.status === 'completed') {
+                        // 任务完成
+                        progressFill.style.width = '100%';
+                        progressStatus.textContent = '生成完成！';
+                        
+                        // 重新加载统计信息和页面
+                        this.loadStats();
+                        this.loadPage(1);
+                        this.showSuccessMessage(taskStatus.result?.message || '生成完成');
+                        
+                        resolve();
+                        return;
+                    }
+                    
+                    if (taskStatus.status === 'failed') {
+                        // 任务失败
+                        throw new Error(taskStatus.error || '任务执行失败');
+                    }
+                    
+                    if (taskStatus.status === 'running' && pollCount < maxPolls) {
+                        // 继续轮询
+                        setTimeout(poll, pollInterval);
+                    } else if (pollCount >= maxPolls) {
+                        // 轮询超时
+                        throw new Error('任务执行超时，请稍后刷新页面查看结果');
+                    }
+                    
+                } catch (error) {
+                    reject(error);
+                }
+            };
+
+            // 开始轮询
+            poll();
+        });
     }
 
     /**

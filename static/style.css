@@ -231,10 +231,7 @@ body {
 }
 
 .word-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.6rem;
 }
 
 .word-text {
@@ -243,17 +240,28 @@ body {
     color: #2c3e50;
 }
 
+/* 音标行样式 */
+.phonetic-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.word-phonetic {
+    font-size: 0.9rem;
+    color: #e74c3c;
+    font-style: italic;
+    font-weight: 500;
+    font-family: 'Lucida Sans Unicode', sans-serif;
+}
+
 .pronunciation-buttons {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-}
-
-.word-phonetic {
-    font-size: 0.85rem;
-    color: #666;
-    font-style: italic;
-    margin-right: 0.5rem;
 }
 
 .pronunciation-btn {
@@ -588,6 +596,15 @@ body {
     
     .word-card {
         padding: 0.8rem;
+    }
+    
+    .phonetic-line {
+        gap: 0.4rem;
+        padding: 0.3rem 0;
+    }
+    
+    .word-phonetic {
+        font-size: 0.8rem;
     }
     
     .essay-section, .words-section {

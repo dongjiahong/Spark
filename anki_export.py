@@ -391,10 +391,7 @@ class AnkiExporter:
 }
 
 .word-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .word-text {
@@ -403,17 +400,28 @@ class AnkiExporter:
     color: #2c3e50;
 }
 
+/* 音标行样式 */
+.phonetic-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.word-phonetic {
+    font-size: 0.95rem;
+    color: #e74c3c;
+    font-style: italic;
+    font-weight: 500;
+    font-family: 'Lucida Sans Unicode', sans-serif;
+}
+
 .pronunciation-buttons {
     display: flex;
     align-items: center;
     gap: 0.3rem;
-}
-
-.word-phonetic {
-    font-size: 0.85rem;
-    color: #666;
-    font-style: italic;
-    margin-right: 0.5rem;
 }
 
 .word-pronunciation {
@@ -680,6 +688,12 @@ class AnkiExporter:
     
     .phonetic-line {
         font-size: 14px;
+        gap: 0.4rem;
+        padding: 3px 0;
+    }
+    
+    .word-phonetic {
+        font-size: 0.85rem;
     }
     
     .word-content > div {
@@ -722,12 +736,8 @@ class AnkiExporter:
         <div class="word-card">
             <div class="word-header">
                 <span class="word-text">{escape(word)}</span>
-                <div class="pronunciation-buttons">
-                    {f'<span class="word-phonetic">{escape(phonetic)}</span>' if phonetic else ''}
-                    <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 1)" title="英式发音">🇬🇧</button>
-                    <button class="pronunciation-btn" onclick="playPronunciation('{escape(word)}', 0)" title="美式发音">🇺🇸</button>
-                </div>
             </div>
+            {f'<div class="phonetic-line"><span class="word-phonetic">{escape(phonetic)}</span> <button class="pronunciation-btn" onclick="playPronunciation(\'{escape(word)}\', 1)" title="英式发音">🇬🇧</button><button class="pronunciation-btn" onclick="playPronunciation(\'{escape(word)}\', 0)" title="美式发音">🇺🇸</button></div>' if phonetic else ''}
             {f'<div class="word-pronunciation">{escape(pronunciation)}</div>' if pronunciation else ''}
             <div class="word-info">
                 {f'<div class="word-pos">{escape(self._format_part_of_speech(part_of_speech))}</div>' if part_of_speech else ''}
