@@ -376,19 +376,47 @@ class TOEFLViewer {
 
             updateProgress(75, '创建短文...');
 
-            // 发送生成请求
-            const response = await fetch('/api/generate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    word_count: 10,
-                    essay_type: 'story'
-                })
-            });
+            // 创建带超时的fetch请求
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 300000); // 5分钟超时
 
-            const result = await response.json();
+            let result;
+            try {
+                // 发送生成请求
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        word_count: 10,
+                        essay_type: 'story'
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                // 检查响应状态和内容类型
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`服务器错误 ${response.status}: ${errorText}`);
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const errorText = await response.text();
+                    throw new Error(`服务器返回非JSON响应，可能是请求超时或服务器错误`);
+                }
+
+                result = await response.json();
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('请求超时（5分钟），请检查网络连接或稍后再试');
+                }
+                throw error;
+            }
 
             updateProgress(100, '生成完成！');
             await new Promise(resolve => setTimeout(resolve, 500));
