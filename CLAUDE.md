@@ -48,6 +48,18 @@ cp .env.example .env
 
 ### 运行应用
 
+#### 推荐方式：自动启动脚本
+```bash
+# 首次运行或新环境，自动处理数据库初始化
+python start_web.py
+```
+
+#### 手动数据库初始化（可选）
+```bash
+# 在新机器上首次运行，先初始化数据库
+python init_database.py
+```
+
 #### Web界面模式（推荐）
 ```bash
 python web_viewer.py
@@ -56,6 +68,7 @@ python web_viewer.py
 - 浏览单词和短文内容
 - 一键"再来一组"生成新学习内容
 - 实时进度显示和统计信息
+- 学习进度跟踪和完成标记
 
 #### CLI交互模式
 ```bash

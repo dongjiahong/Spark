@@ -12,6 +12,7 @@ import math
 import threading
 import uuid
 import time
+import os
 from typing import Dict, Any, List, Optional
 
 app = Flask(__name__)
@@ -804,7 +805,41 @@ def download_file(filename):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def ensure_database_initialized():
+    """确保数据库已初始化"""
+    try:
+        from init_database import init_database, check_database_integrity
+        
+        # 检查数据库是否存在
+        if not os.path.exists("toefl_words.db"):
+            print("⚠️ 数据库文件不存在，正在初始化...")
+            init_database()
+            return
+            
+        # 检查必需的表是否存在
+        conn = sqlite3.connect("toefl_words.db")
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='study_groups'")
+            if not cursor.fetchone():
+                print("⚠️ 缺少必需的数据库表，正在更新数据库结构...")
+                conn.close()
+                init_database()
+                return
+            print("✅ 数据库结构检查通过")
+        finally:
+            conn.close()
+            
+    except ImportError:
+        print("⚠️ 无法导入init_database模块，跳过数据库检查")
+    except Exception as e:
+        print(f"⚠️ 数据库检查出错: {e}")
+
 if __name__ == '__main__':
     print("启动TOEFL单词学习系统Web查看器...")
+    
+    # 确保数据库已正确初始化
+    ensure_database_initialized()
+    
     print("访问地址: http://localhost:8080 或 http://127.0.0.1:8080")
     app.run(debug=True, host='0.0.0.0', port=8080)
