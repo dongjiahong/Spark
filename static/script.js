@@ -8,6 +8,7 @@ class TOEFLViewer {
         this.totalPages = 1;
         this.translationVisible = false;
         this.cardTimers = new Map(); // 存储每个卡片的定时器
+        this.currentStudyGroupId = null; // 当前学习组ID
         
         this.init();
     }
@@ -51,6 +52,11 @@ class TOEFLViewer {
         // 重试按钮
         document.getElementById('retry-btn').addEventListener('click', () => {
             this.loadPage(this.currentPage);
+        });
+
+        // 学习完成按钮
+        document.getElementById('complete-study-btn').addEventListener('click', () => {
+            this.completeStudy();
         });
 
         // 键盘导航
@@ -144,6 +150,9 @@ class TOEFLViewer {
         
         // 渲染短文
         this.renderEssay(essay);
+        
+        // 渲染学习控制
+        this.renderStudyControls(essay);
     }
 
     /**
@@ -261,6 +270,157 @@ class TOEFLViewer {
         // 重置翻译状态
         this.translationVisible = false;
         this.updateTranslationButton();
+    }
+
+    /**
+     * 渲染学习控制区域
+     */
+    renderStudyControls(essay) {
+        const studyControlsElement = document.getElementById('study-controls');
+        const studyStatusElement = document.getElementById('study-status-text');
+        const completeBtn = document.getElementById('complete-study-btn');
+        
+        // 调试日志
+        console.log('Essay data:', essay);
+        console.log('Study group id:', essay.study_group_id);
+        console.log('Study group status:', essay.study_group_status);
+        
+        // 检查是否有学习组信息
+        if (essay.study_group_id) {
+            this.currentStudyGroupId = essay.study_group_id;
+            const status = essay.study_group_status || 'active';
+            
+            // 显示学习控制
+            studyControlsElement.style.display = 'flex';
+            
+            if (status === 'active') {
+                studyStatusElement.textContent = '状态：学习中';
+                studyStatusElement.style.color = '#495057';
+                completeBtn.disabled = false;
+                completeBtn.style.display = 'flex';
+            } else if (status === 'completed') {
+                studyStatusElement.textContent = '状态：已完成';
+                studyStatusElement.style.color = '#28a745';
+                completeBtn.disabled = true;
+                completeBtn.style.display = 'none';
+            }
+        } else {
+            // 没有学习组信息（旧数据），隐藏控制
+            studyControlsElement.style.display = 'none';
+            this.currentStudyGroupId = null;
+        }
+    }
+
+    /**
+     * 完成学习
+     */
+    async completeStudy() {
+        if (!this.currentStudyGroupId) {
+            this.showToast('没有找到学习组信息', 'error');
+            return;
+        }
+
+        const completeBtn = document.getElementById('complete-study-btn');
+        const studyStatusElement = document.getElementById('study-status-text');
+        
+        // 禁用按钮
+        completeBtn.disabled = true;
+        completeBtn.innerHTML = '<span>⏳</span><span>处理中...</span>';
+
+        try {
+            const response = await fetch(`/api/study-group/${this.currentStudyGroupId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || '请求失败');
+            }
+
+            const result = await response.json();
+            
+            if (result.success) {
+                // 更新状态显示
+                studyStatusElement.textContent = '状态：已完成';
+                studyStatusElement.style.color = '#28a745';
+                completeBtn.style.display = 'none';
+                
+                // 显示成功提示
+                this.showToast('学习完成！下次打开将显示新的学习内容', 'success');
+                
+                // 更新统计信息
+                this.loadStats();
+            } else {
+                throw new Error(result.message || '操作失败');
+            }
+
+        } catch (error) {
+            console.error('完成学习失败:', error);
+            this.showToast(`完成学习失败: ${error.message}`, 'error');
+            
+            // 恢复按钮状态
+            completeBtn.disabled = false;
+            completeBtn.innerHTML = '<span>✓</span><span>学习完成</span>';
+        }
+    }
+
+    /**
+     * 显示提示消息
+     */
+    showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        
+        let bgColor, textColor;
+        switch (type) {
+            case 'success':
+                bgColor = 'linear-gradient(135deg, #28a745, #20c997)';
+                textColor = 'white';
+                break;
+            case 'error':
+                bgColor = 'linear-gradient(135deg, #dc3545, #e74c3c)';
+                textColor = 'white';
+                break;
+            default:
+                bgColor = 'linear-gradient(135deg, #667eea, #764ba2)';
+                textColor = 'white';
+        }
+        
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: ${textColor};
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 10000;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(300px);
+            transition: transform 0.3s ease;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // 显示动画
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // 4秒后自动移除
+        setTimeout(() => {
+            toast.style.transform = 'translateX(300px)';
+            setTimeout(() => {
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
+            }, 300);
+        }, 4000);
     }
 
     /**

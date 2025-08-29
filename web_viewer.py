@@ -30,7 +30,7 @@ class WebDataManager:
     
     def get_essays_with_pagination(self, page: int = 1, per_page: int = 1) -> Dict[str, Any]:
         """
-        获取分页的短文数据
+        获取分页的短文数据（优先显示active状态的study_groups）
         
         Args:
             page: 页码（从1开始）
@@ -43,24 +43,60 @@ class WebDataManager:
         cursor = conn.cursor()
         
         try:
-            # 获取总数
-            cursor.execute("SELECT COUNT(*) FROM essay")
-            total_count = cursor.fetchone()[0]
+            # 首先查找active状态的study_groups
+            cursor.execute("""
+                SELECT sg.*, e.* FROM study_groups sg 
+                LEFT JOIN essay e ON sg.essay_id = e.id 
+                WHERE sg.group_status = 'active' AND e.id IS NOT NULL
+                ORDER BY sg.created_date DESC
+            """)
+            active_groups = cursor.fetchall()
             
-            # 计算偏移量
-            offset = (page - 1) * per_page
-            
-            # 获取短文数据（按时间倒序）
-            cursor.execute(
-                "SELECT * FROM essay ORDER BY created DESC LIMIT ? OFFSET ?",
-                (per_page, offset)
-            )
-            essays = cursor.fetchall()
+            if active_groups and page == 1:
+                # 如果有active状态的组且是第一页，优先显示
+                essays = active_groups[:per_page]
+                total_count = len(active_groups)
+                essay_source = "active_groups"
+            else:
+                # 否则按原来逻辑显示所有essay（包括没有study_group的旧数据）
+                cursor.execute("SELECT COUNT(*) FROM essay")
+                total_count = cursor.fetchone()[0]
+                
+                offset = (page - 1) * per_page
+                cursor.execute(
+                    "SELECT * FROM essay ORDER BY created DESC LIMIT ? OFFSET ?",
+                    (per_page, offset)
+                )
+                essays = cursor.fetchall()
+                essay_source = "all_essays"
             
             # 处理短文数据
             essay_data = []
             for essay in essays:
                 essay_dict = dict(essay)
+                
+                # 如果是从 active_groups 来的数据，需要附加 study_group 信息
+                if essay_source == "active_groups":
+                    study_group_id = essay_dict.get('id')  # study_group id
+                    study_group_status = essay_dict.get('group_status')
+                    # 重新获取essay数据（因为JOIN后字段名可能冲突）
+                    essay_id = essay_dict.get('essay_id')
+                    cursor.execute("SELECT * FROM essay WHERE id = ?", (essay_id,))
+                    essay_data_raw = cursor.fetchone()
+                    if essay_data_raw:
+                        essay_dict.update(dict(essay_data_raw))
+                        essay_dict['study_group_id'] = study_group_id  # 保持study_group id
+                        essay_dict['study_group_status'] = study_group_status
+                else:
+                    # 检查是否有对应的study_group
+                    cursor.execute("SELECT * FROM study_groups WHERE essay_id = ?", (essay_dict['id'],))
+                    study_group = cursor.fetchone()
+                    if study_group:
+                        essay_dict['study_group_id'] = study_group['id']
+                        essay_dict['study_group_status'] = study_group['group_status']
+                    else:
+                        essay_dict['study_group_id'] = None
+                        essay_dict['study_group_status'] = None
                 
                 # 解析JSON内容
                 try:
@@ -89,7 +125,9 @@ class WebDataManager:
                     'has_next': page < total_pages,
                     'prev_page': page - 1 if page > 1 else None,
                     'next_page': page + 1 if page < total_pages else None
-                }
+                },
+                'source': essay_source,
+                'has_active_groups': len(active_groups) > 0 if 'active_groups' in locals() else False
             }
             
         finally:
@@ -672,6 +710,73 @@ def export_anki_file(export_type):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/study-group/<int:group_id>/complete', methods=['POST'])
+def complete_study_group(group_id: int):
+    """标记学习组为已完成"""
+    try:
+        conn = data_manager.get_database_connection()
+        cursor = conn.cursor()
+        
+        # 检查学习组是否存在
+        cursor.execute('SELECT * FROM study_groups WHERE id = ?', (group_id,))
+        group = cursor.fetchone()
+        
+        if not group:
+            return jsonify({'error': '学习组不存在'}), 404
+        
+        if group['group_status'] == 'completed':
+            return jsonify({'message': '学习组已经是完成状态'}), 200
+        
+        # 更新学习组状态
+        cursor.execute(
+            'UPDATE study_groups SET group_status = ?, completed_items = total_items, completed_date = CURRENT_TIMESTAMP WHERE id = ?',
+            ('completed', group_id)
+        )
+        conn.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '学习组已标记为完成',
+            'group_id': group_id
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/study-groups/current')
+def get_current_study_group():
+    """获取当前活跃的学习组"""
+    try:
+        conn = data_manager.get_database_connection()
+        cursor = conn.cursor()
+        
+        # 查找最新的active状态学习组
+        cursor.execute(
+            'SELECT * FROM study_groups WHERE group_status = ? ORDER BY created_date DESC LIMIT 1',
+            ('active',)
+        )
+        active_group = cursor.fetchone()
+        
+        if active_group:
+            return jsonify({
+                'has_active_group': True,
+                'group': dict(active_group)
+            })
+        else:
+            return jsonify({
+                'has_active_group': False,
+                'group': None
+            })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
 @app.route('/download/<filename>')
 def download_file(filename):

@@ -184,6 +184,39 @@ class WordManager:
         finally:
             conn.close()
 
+    def create_study_group(
+        self, word_ids: List[int], essay_id: Optional[int] = None
+    ) -> Optional[int]:
+        """
+        创建学习组记录
+
+        Args:
+            word_ids: 相关单词ID列表
+            essay_id: 短文ID（可选）
+
+        Returns:
+            Optional[int]: 学习组ID，失败时返回None
+        """
+        conn = self.get_database_connection()
+        cursor = conn.cursor()
+
+        try:
+            word_ids_json = json.dumps(word_ids)
+            total_items = len(word_ids) + (1 if essay_id else 0)  # 单词数 + 短文数
+
+            cursor.execute(
+                "INSERT INTO study_groups (word_ids, essay_id, group_status, total_items, completed_items) VALUES (?, ?, ?, ?, ?)",
+                (word_ids_json, essay_id, "active", total_items, 0),
+            )
+            conn.commit()
+            return cursor.lastrowid
+
+        except sqlite3.Error as e:
+            print(f"创建学习组失败: {e}")
+            return None
+        finally:
+            conn.close()
+
     def generate_learning_session(
         self, word_count: int = 5, essay_type: str = "story"
     ) -> Dict[str, Any]:
@@ -243,6 +276,7 @@ class WordManager:
         # 3. 生成短文（只为成功生成学习信息的单词生成短文）
         essay_content = {}
         essay_id = None
+        study_group_id = None
         
         if successful_words:
             print(f"正在为成功的单词 {successful_words} 生成{essay_type}...")
@@ -252,6 +286,15 @@ class WordManager:
             if "error" not in essay_content:
                 essay_id = self.save_essay(successful_words, essay_content)
                 print(f"✓ 短文已保存，ID: {essay_id}")
+                
+                # 创建学习组
+                successful_word_ids = [word_data["id"] for word_data in selected_words 
+                                     if word_data["word"] in successful_words]
+                study_group_id = self.create_study_group(successful_word_ids, essay_id)
+                if study_group_id:
+                    print(f"✓ 学习组已创建，ID: {study_group_id}")
+                else:
+                    print("✗ 学习组创建失败")
             else:
                 print(f"✗ 短文生成失败: {essay_content.get('error')}")
         else:
@@ -262,6 +305,7 @@ class WordManager:
             "words": words_with_content,
             "essay": essay_content,
             "essay_id": essay_id,
+            "study_group_id": study_group_id,
             "session_summary": {
                 "word_count": len(selected_words),
                 "successful_words": len(successful_words),
