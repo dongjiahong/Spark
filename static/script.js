@@ -7,6 +7,7 @@ class TOEFLViewer {
         this.currentPage = 1;
         this.totalPages = 1;
         this.translationVisible = false;
+        this.cardTimers = new Map(); // 存储每个卡片的定时器
         
         this.init();
     }
@@ -156,7 +157,7 @@ class TOEFLViewer {
             return;
         }
 
-        wordsContainer.innerHTML = words.map(word => {
+        wordsContainer.innerHTML = words.map((word, index) => {
             const learnContent = word.learn_content || {};
             const phonetic = this.formatPhonetic(learnContent.phonetic);
             const translations = learnContent.translations || [];
@@ -164,9 +165,10 @@ class TOEFLViewer {
             const examples = learnContent.examples || [];
             const commonPhrases = learnContent.common_phrases || [];
             const etymology = learnContent.etymology || {};
+            const wordCardId = `word-card-${index}`;
 
             return `
-                <div class="word-card">
+                <div class="word-card" id="${wordCardId}" data-word-index="${index}">
                     <div class="word-header">
                         <span class="word-text">${word.word}</span>
                         <div class="pronunciation-buttons">
@@ -178,46 +180,64 @@ class TOEFLViewer {
                     ${learnContent.pronunciation ? `
                         <div class="word-pronunciation">${learnContent.pronunciation}</div>
                     ` : ''}
-                    <div class="word-info">
-                        ${partOfSpeech.length > 0 ? `
-                            <div class="word-pos">${partOfSpeech.join(', ')}</div>
+                    
+                    <!-- 详细信息部分，默认隐藏 -->
+                    <div class="word-card-details">
+                        <div class="word-info">
+                            ${partOfSpeech.length > 0 ? `
+                                <div class="word-pos">${partOfSpeech.join(', ')}</div>
+                            ` : ''}
+                            ${translations.length > 0 ? `
+                                <div class="word-translations">${translations.join('；')}</div>
+                            ` : ''}
+                        </div>
+                        ${commonPhrases.length > 0 ? `
+                            <div class="word-phrases">
+                                <div class="section-title">常用短语</div>
+                                ${commonPhrases.map(phrase => `
+                                    <div class="word-phrase">
+                                        <span class="phrase-text">${phrase.phrase || ''}</span>
+                                        <span class="phrase-translation">${phrase.translation || ''}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
                         ` : ''}
-                        ${translations.length > 0 ? `
-                            <div class="word-translations">${translations.join('；')}</div>
+                        ${etymology.root || etymology.analysis ? `
+                            <div class="word-etymology">
+                                <div class="section-title">词根词缀</div>
+                                ${etymology.root ? `<div class="etymology-root">词根：${etymology.root}</div>` : ''}
+                                ${etymology.analysis ? `<div class="etymology-analysis">${etymology.analysis}</div>` : ''}
+                            </div>
+                        ` : ''}
+                        ${examples.length > 0 ? `
+                            <div class="word-examples">
+                                <div class="section-title">例句</div>
+                                ${examples.slice(0, 2).map(example => `
+                                    <div class="word-example">
+                                        <div class="example-sentence">${example.sentence || ''}</div>
+                                        <div class="word-example-translation">${example.translation || ''}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
                         ` : ''}
                     </div>
-                    ${commonPhrases.length > 0 ? `
-                        <div class="word-phrases">
-                            <div class="section-title">常用短语</div>
-                            ${commonPhrases.map(phrase => `
-                                <div class="word-phrase">
-                                    <span class="phrase-text">${phrase.phrase || ''}</span>
-                                    <span class="phrase-translation">${phrase.translation || ''}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    ${etymology.root || etymology.analysis ? `
-                        <div class="word-etymology">
-                            <div class="section-title">词根词缀</div>
-                            ${etymology.root ? `<div class="etymology-root">词根：${etymology.root}</div>` : ''}
-                            ${etymology.analysis ? `<div class="etymology-analysis">${etymology.analysis}</div>` : ''}
-                        </div>
-                    ` : ''}
-                    ${examples.length > 0 ? `
-                        <div class="word-examples">
-                            <div class="section-title">例句</div>
-                            ${examples.slice(0, 2).map(example => `
-                                <div class="word-example">
-                                    <div class="example-sentence">${example.sentence || ''}</div>
-                                    <div class="word-example-translation">${example.translation || ''}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
                 </div>
             `;
         }).join('');
+
+        // 为每个单词卡片添加点击事件
+        words.forEach((word, index) => {
+            const wordCard = document.getElementById(`word-card-${index}`);
+            if (wordCard) {
+                wordCard.addEventListener('click', (e) => {
+                    // 防止发音按钮触发卡片点击
+                    if (e.target.classList.contains('pronunciation-btn')) {
+                        return;
+                    }
+                    this.toggleWordCard(wordCard);
+                });
+            }
+        });
     }
 
     /**
@@ -261,6 +281,61 @@ class TOEFLViewer {
         }
         
         return '';
+    }
+
+    /**
+     * 切换单词卡片的展开/收起状态
+     */
+    toggleWordCard(wordCard) {
+        const cardId = wordCard.id;
+        
+        if (wordCard.classList.contains('expanded')) {
+            // 收起卡片
+            this.collapseCard(wordCard);
+        } else {
+            // 展开卡片
+            this.expandCard(wordCard);
+        }
+    }
+
+    /**
+     * 展开卡片
+     */
+    expandCard(wordCard) {
+        const cardId = wordCard.id;
+        
+        // 清除之前的定时器（如果存在）
+        if (this.cardTimers.has(cardId)) {
+            clearTimeout(this.cardTimers.get(cardId));
+            this.cardTimers.delete(cardId);
+        }
+        
+        // 展开卡片
+        wordCard.classList.add('expanded');
+        
+        // 设置20秒后自动收起的定时器
+        const timer = setTimeout(() => {
+            this.collapseCard(wordCard);
+            this.cardTimers.delete(cardId);
+        }, 20000); // 20秒 = 20000毫秒
+        
+        this.cardTimers.set(cardId, timer);
+    }
+
+    /**
+     * 收起卡片
+     */
+    collapseCard(wordCard) {
+        const cardId = wordCard.id;
+        
+        // 清除定时器（如果存在）
+        if (this.cardTimers.has(cardId)) {
+            clearTimeout(this.cardTimers.get(cardId));
+            this.cardTimers.delete(cardId);
+        }
+        
+        // 收起卡片
+        wordCard.classList.remove('expanded');
     }
 
     /**

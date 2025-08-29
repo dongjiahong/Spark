@@ -215,6 +215,7 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
+    align-items: start; /* 让卡片从顶部对齐，而不是拉伸 */
 }
 
 .word-card {
@@ -223,11 +224,39 @@ body {
     border-radius: 6px;
     padding: 1rem;
     transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    position: relative;
 }
 
 .word-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.word-card::after {
+    content: '▼';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    color: #666;
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.word-card.expanded::after {
+    transform: rotate(180deg);
+}
+
+.word-card-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+.word-card.expanded .word-card-details {
+    max-height: 800px;
+    opacity: 1;
 }
 
 .word-header {
